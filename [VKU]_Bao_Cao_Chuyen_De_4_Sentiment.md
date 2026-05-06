@@ -161,9 +161,35 @@ Với định hướng sản phẩm chuẩn doanh nghiệp, bộ máy nhân sự
 ---
 
 ### CHƯƠNG 3: CƠ SỞ KHOA HỌC VÀ NỀN TẢNG THUẬT TOÁN (NLP & ABSA)
-**3.1. Tổng quan về Phân tích Cảm xúc trong Kinh doanh**
-* Định nghĩa và ứng dụng của Sentiment Analysis trong Business Intelligence.
-* Các độ đo đánh giá: Tỷ lệ tích cực/tiêu cực, Net Sentiment Score (NSS).
+**3.1. Tổng quan về Phân tích Cảm xúc trong Kinh doanh (Business Intelligence)**
+
+**3.1.1. Khái niệm và Vai trò trong Hệ thống BI**
+Phân tích cảm xúc (Sentiment Analysis), hay Khai phá ý kiến (Opinion Mining), là một nhánh chuyên sâu của lĩnh vực Xử lý Ngôn ngữ Tự nhiên (NLP). Về mặt toán học và khoa học máy tính, đây là quá trình sử dụng các thuật toán phân loại (Classification Algorithms) để ánh xạ một chuỗi văn bản không cấu trúc $T = \{w_1, w_2, ..., w_n\}$ thành một hàm mục tiêu $S(T) \in \{\text{Positive, Negative, Neutral}\}$.
+
+Trong bối cảnh Tình báo Kinh doanh (Business Intelligence - BI) hiện đại, Phân tích cảm xúc không chỉ dừng lại ở việc đếm số lượng từ ngữ khen/chê. Nó được tích hợp thành một đường ống dữ liệu (Data Pipeline) tự động nhằm lượng hóa (quantify) "Tiếng nói của Khách hàng" (Voice of Customer). Nhờ đó, doanh nghiệp xe điện có thể:
+*   Phát hiện sớm các rủi ro khủng hoảng truyền thông (Crisis Management) dựa trên sự gia tăng đột biến của luồng cảm xúc tiêu cực.
+*   Đánh giá hiệu quả của các chiến dịch ra mắt xe mới hoặc các bản cập nhật phần mềm (OTA updates).
+*   Thực hiện Đối chuẩn Cạnh tranh (Competitive Benchmarking) thông qua việc so sánh các chỉ số sức khỏe thương hiệu với đối thủ trực tiếp.
+
+**3.1.2. Lượng hóa Cảm xúc: Chỉ số Cảm xúc Thuần (Net Sentiment Score - NSS)**
+
+Để dịch thuật các nhãn cảm xúc phân loại từ mô hình AI thành một độ đo tài chính và kinh doanh dễ hiểu cho cấp quản lý (C-level), các báo cáo chuẩn thế giới năm 2026 sử dụng **Chỉ số Cảm xúc Thuần (Net Sentiment Score - NSS)**. 
+
+Khác với tỷ lệ phần trăm thông thường, NSS được tính toán dựa trên biên độ chênh lệch giữa tỷ trọng Tích cực và Tiêu cực, qua đó loại bỏ sự trung hòa bề mặt của các bình luận Trung tính. Công thức tính toán NSS được định nghĩa như sau:
+
+$$NSS = \left( \frac{\sum \text{Positive Mentions} - \sum \text{Negative Mentions}}{\sum \text{Total Mentions}} \right) \times 100$$
+
+*Giải nghĩa khoảng giá trị:*
+*   **-100 đến < 0:** Khu vực cảnh báo rủi ro (Risk Zone), nơi luồng dư luận tiêu cực lấn át hoàn toàn những đánh giá tốt. Thương hiệu đang đối mặt với sự phản kháng của thị trường.
+*   **0:** Trạng thái trung lập, hoặc tỷ lệ người khen và kẻ chê bằng nhau một cách tuyệt đối.
+*   **> 0 đến 100:** Khu vực an toàn (Favorable Zone). Một chỉ số NSS từ mức **+30 đến +50** được giới chuyên gia đánh giá là một thương hiệu có sức khỏe rất vững mạnh trên không gian số.
+
+Dưới đây là biểu đồ chứng minh **kết quả chạy thực tế** của hệ thống do nhóm xây dựng, đo lường trực tiếp chỉ số NSS tổng quan giữa VinFast và BYD từ hàng ngàn bản ghi dữ liệu thực tế:
+
+![Biểu đồ so sánh Chỉ số Cảm xúc Thuần (Net Sentiment Score) giữa VinFast và BYD](/Users/thanhhuy_23/Workspace/application/colab/SENTIMENT/artifacts/plots/12_nss_comparison.png)
+*Hình 3.1: So sánh đối chuẩn (Benchmarking) chỉ số NSS thực tế từ hệ thống.*
+
+Việc ứng dụng toán học vào đo lường cảm xúc giúp hệ thống loại bỏ những nhận định cảm tính. Thay vì nói "có vẻ người ta thích VinFast hơn", chúng ta có một con số cụ thể, chứng minh sức mạnh thuật toán tác động trực tiếp vào góc độ đánh giá doanh nghiệp. Tuy nhiên, như đã trình bày ở Chương 1, việc chỉ dừng lại ở NSS tổng quan là chưa đủ, mà cần phải bóc tách sâu hơn vào từng đặc tính sản phẩm (ABSA) sẽ được trình bày ở phần tiếp theo.
 
 **3.2. Phương pháp Phân tích Cảm xúc Đa khía cạnh (ABSA)**
 * Khái niệm ABSA và sự vượt trội so với phân tích cảm xúc mức độ câu (Sentence-level).
