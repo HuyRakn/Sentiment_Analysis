@@ -103,17 +103,60 @@ graph TD
 ```
 
 **Chiến lược tích hợp Hybrid trong thực tiễn đồ án:**
-Sự kết hợp này giải quyết bài toán "điểm mù thời gian" trong nghiên cứu AI thông qua 3 nguyên tắc cốt lõi:
-1. **Chia tách Task Tuyến tính và Task Khám phá (Linear vs. Exploratory Tasks):** Các công việc mang tính kỹ thuật phần mềm (như viết script cào dữ liệu Selenium, xây dựng giao diện Streamlit) được ước lượng bằng Story Points và chạy theo luồng Scrum truyền thống. Ngược lại, các công việc mang tính nghiên cứu thuật toán (tinh chỉnh Hyperparameters cho PhoBERT) được đưa vào các khối "Time-boxed Spikes". Nếu mô hình không vượt qua mốc F1-Score 0.85 trong giới hạn 4 ngày của Sprint, nhóm buộc phải dừng để phân tích nguyên nhân tại Sprint Review thay vì chìm đắm vô thời hạn vào việc tinh chỉnh.
-2. **Định nghĩa lại "Đã hoàn thành" (Definition of Done - DoD):** Trong NLP, một mô hình hiếm khi đạt mức hoàn hảo 100%. Tiêu chí DoD của dự án được dịch chuyển từ "mô hình không có lỗi" sang "mô hình vượt qua Baseline Benchmark (F1-score > 0.85 trên tập Validation) và xử lý không bị tràn RAM".
-3. **Vòng lặp trong Vòng lặp (Loop-in-Loop):** Nhìn vào sơ đồ, có thể thấy chu trình CRISP-DM hoạt động như một bánh răng nhỏ chạy tốc độ cao bên trong bánh răng lớn của Sprint. Một Sprint kéo dài 2 tuần có thể chứa nhiều vòng lặp `Data Prep → Modeling → Eval → Data Prep` cho đến khi mô hình thực sự hội tụ.
 
-**2.2. Cấu trúc Phân rã Công việc (WBS) & Bảng phân công chi tiết**
-*(Bảng phân chia công việc đảm bảo khối lượng đều nhau cho 4 thành viên, Ngân làm Leader điều phối và lo mô hình cốt lõi).*
-* **Châu Ngân (Leader):** Quản lý tiến độ, thiết kế kiến trúc Pipeline; Trực tiếp Fine-tune mô hình học sâu PhoBERT cho bài toán ABSA; Đánh giá độ chính xác (Evaluation Metrics).
-* **Thanh Huy:** Xây dựng luồng Tiền xử lý dữ liệu Tiếng Việt (NLP Preprocessing, Stopwords, Regex); Lập trình phát triển hệ thống giao diện Dashboard tương tác (Streamlit).
-* **Quý:** Kỹ thuật Thu thập dữ liệu (Data Crawling) qua API và Scraping từ YouTube, Forums; Thiết kế luồng gán nhãn dữ liệu thực tế.
-* **Tuấn:** Lập trình Trực quan hóa dữ liệu (Data Visualization - 21 biểu đồ Plotly); Tích hợp logic xử lý đầu ra và viết tài liệu/báo cáo phân tích kinh doanh.
+Sự kết hợp này giải quyết bài toán "điểm mù thời gian" trong nghiên cứu AI. Trong khuôn khổ Hybrid, **CRISP-DM đóng vai trò là bản đồ chỉ đường (Roadmap)** về mặt kỹ thuật, trong khi **Agile Scrum là cỗ máy thực thi (Delivery Engine)** điều phối nguồn lực. Đồ án chia rẽ 6 pha của CRISP-DM và nhúng chúng vào các chu kỳ Sprints như sau:
+
+1. **Pha 1 & 2 - Business & Data Understanding (Các Sprint Khởi tạo):** Thay vì viết các tài liệu đặc tả đồ sộ (Waterfall), nhóm sử dụng các **User Stories** để định nghĩa mục tiêu kinh doanh (VD: "Là một giám đốc VinFast, tôi muốn biết khách hàng phàn nàn gì về trạm sạc"). Trọng tâm của Sprint này là *Exploratory Data Analysis (EDA)* để đánh giá rủi ro dữ liệu trước khi code mô hình.
+2. **Pha 3 - Data Preparation (Các Sprint Kỹ thuật Dữ liệu):** Được đánh giá là pha tiêu tốn 60-70% thời gian dự án. Các công việc như dọn dẹp mã HTML rỗng, chuẩn hóa Unicode tiếng Việt, và xây dựng danh sách từ dừng (Stopwords) mang tính chất tuyến tính (Linear tasks) nên được quản lý chặt bằng Story Points như kỹ nghệ phần mềm truyền thống.
+3. **Pha 4 & 5 - Modeling & Evaluation (Sprints Thử nghiệm Đóng hộp - Time-boxed Spikes):** Đây là khu vực rủi ro cao nhất. Trái với code phần mềm (viết là chạy), code mô hình PhoBERT có thể không hội tụ. Nhóm áp dụng kỹ thuật **Time-boxed Experimentation**. Quá trình tinh chỉnh siêu tham số (Hyperparameters) bị giới hạn khắt khe trong 4-5 ngày của một Sprint. Nếu mô hình không vượt qua mốc Baseline (F1-Score > 0.85), nhóm buộc phải chốt thất bại sớm (Fail fast) ngay tại buổi Sprint Review để quay lại Pha 3 (làm sạch lại dữ liệu) thay vì sa lầy vô thời hạn. Tiêu chí hoàn thành (Definition of Done) được dịch chuyển từ "code không bug" sang "mô hình đáp ứng ngưỡng Business Baseline".
+4. **Pha 6 - Deployment (Sprint Đóng gói & CI/CD):** Đưa mô hình ABSA đã chốt vào tích hợp với hệ thống Streamlit Dashboard và tiến hành xả (release) sản phẩm liên tục để đánh giá độ trễ hiển thị (Latency) trên trình duyệt.
+
+---
+
+**2.2. Cấu trúc Phân rã Công việc (WBS) & Lịch trình Dự án**
+
+Để hiện thực hóa phương pháp Hybrid Agile trên, tổng khối lượng công việc được phân rã thành các gói (Work Packages) và trải dài trên trục thời gian thực tế 15 tuần. Dự án áp dụng sơ đồ Gantt để quy hoạch điểm nghẽn và luồng bàn giao (Handoff) giữa các thành viên.
+
+### 2.2.1. Biểu đồ Thời gian Gantt (Gantt Chart Timeline)
+
+```mermaid
+gantt
+    title BẢNG TIẾN ĐỘ TRIỂN KHAI DỰ ÁN ABSA (AGILE SPRINTS)
+    dateFormat  YYYY-MM-DD
+    axisFormat  %W
+    
+    section Giai đoạn 1: Dữ liệu
+    Thu thập dữ liệu (YouTube, Forums) (Quý) :a1, 2026-03-01, 14d
+    Làm sạch & Gán nhãn Label Studio (Quý)   :a2, after a1, 14d
+    
+    section Giai đoạn 2: NLP Pipeline
+    Tiền xử lý 8 bước tiếng Việt (Huy)       :b1, 2026-03-15, 20d
+    Khai phá từ điển Aspect Keywords (Huy)   :b2, after b1, 10d
+    
+    section Giai đoạn 3: AI Modeling
+    Fine-tune PhoBERT Base Model (Ngân)      :c1, 2026-04-05, 25d
+    Trích xuất ABSA Context Window (Ngân)    :c2, after c1, 15d
+    
+    section Giai đoạn 4: System & BI
+    Xây dựng Dashboard Streamlit UI (Huy)    :d1, 2026-04-20, 20d
+    Trực quan hóa 21 Biểu đồ Plotly (Tuấn)   :d2, after d1, 15d
+    
+    section Giai đoạn 5: Đóng gói
+    Tích hợp Pipeline & Kiểm thử (Cả nhóm)   :e1, 2026-05-20, 10d
+    Báo cáo Insight Doanh nghiệp (Cả nhóm)   :e2, after e1, 10d
+```
+
+### 2.2.2. Bảng Phân công Chi tiết và Ma trận Trách nhiệm
+
+Với định hướng sản phẩm chuẩn doanh nghiệp, bộ máy nhân sự 4 người được phân vai tương ứng với các vị trí chuyên môn trong một đội ngũ Dữ liệu thực thụ (Data Squad). Sự phân chia đảm bảo tính cân bằng về khối lượng kỹ thuật và logic nghiệp vụ.
+
+| Thành viên | Vai trò (Role) | Chịu trách nhiệm Cốt lõi (Core Responsibilities) | Kết xuất Đầu ra (Deliverables / Codebase) |
+| :--- | :--- | :--- | :--- |
+| **Châu Ngân**<br>*(Nhóm trưởng)* | **AI/ML Engineer &<br>Scrum Master** | **Lõi Trí tuệ Nhân tạo:** Điều phối các phiên Sprint. Chịu trách nhiệm toàn bộ quá trình huấn luyện (Training), tinh chỉnh (Fine-tuning) mô hình ngôn ngữ PhoBERT. Xây dựng thuật toán phân tích cửa sổ ngữ cảnh (Context Window) để gán nhãn đa khía cạnh độc lập. Thiết kế các đồ đo đánh giá mô hình. | File thuật toán lõi `absa.py`. Các file trọng số mô hình đã huấn luyện (Model Weights). Biểu đồ đo lường Loss/Accuracy và Confusion Matrix. |
+| **Thanh Huy** | **Data Engineer &<br>Frontend Dev** | **Đường ống Dữ liệu & Giao diện:** Thiết kế kiến trúc chuyển giao dữ liệu (Data Pipeline). Xây dựng hệ thống bộ lọc NLP Tiếng Việt (chuẩn hóa Unicode, xử lý Teencode). Chịu trách nhiệm thiết kế và lập trình giao diện Dashboard Streamlit tương tác chuẩn UI/UX. | File lõi `pipeline.py`, từ điển cấu hình `config.py`. Toàn bộ khung giao diện `app.py` và kiến trúc Dark-theme CSS. |
+| **Quý** | **Data Sourcing &<br>QA Engineer** | **Khai thác & Đảm bảo Chất lượng Dữ liệu:** Thiết kế các Crawler/Scraper để chắt lọc dữ liệu thô từ API YouTube và luồng DOM của diễn đàn. Xử lý Anti-bot. Khởi tạo môi trường Label Studio, thiết kế guideline gán nhãn thực tế chuẩn xác cho hàng ngàn bản ghi làm mồi huấn luyện. | Các tập dữ liệu thô `raw_ev_corpus.csv`. Tài liệu hướng dẫn gán nhãn (Annotation Guideline). |
+| **Tuấn** | **Data Analyst &<br>BI Specialist** | **Phân tích Kinh doanh & BI:** Tiếp nhận dữ liệu đã qua xử lý ABSA để xây dựng hệ thống 21 biểu đồ Plotly tương tác. Tính toán các độ đo kinh doanh (Net Sentiment Score, Share of Voice). Dịch thuật các con số thuật toán thành Báo cáo định vị thương hiệu (Business Insights) có khả năng sinh lời. | Module phân tích `pages_analytics.py`. Trọn bộ 21 biểu đồ xuất ra định dạng ấn phẩm. Phần kết luận báo cáo Insight thị trường. |
+
 
 ---
 
