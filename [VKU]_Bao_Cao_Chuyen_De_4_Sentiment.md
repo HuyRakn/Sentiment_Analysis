@@ -685,14 +685,83 @@ Sự bóc tách minh bạch từ dữ liệu chữ (Text) sang các vector Khôn
 ---
 
 ### CHƯƠNG 5: KIẾN TRÚC HỆ THỐNG VÀ KẾT QUẢ THỰC NGHIỆM
-**5.1. Triển khai Hệ thống Dashboard (Production-grade UI)**
-* Cấu trúc kiến trúc ứng dụng Streamlit (Overview, ABSA Explorer, Analytics, Live Demo).
-* Giao diện UI/UX chuẩn Premium Dark-theme (Glassmorphism).
 
-### CHƯƠNG 5: KIẾN TRÚC HỆ THỐNG VÀ KẾT QUẢ THỰC NGHIỆM
 **5.1. Triển khai Hệ thống Dashboard (Production-grade UI)**
-* Cấu trúc kiến trúc ứng dụng Streamlit (Overview, ABSA Explorer, Analytics, Live Demo).
-* Giao diện UI/UX chuẩn Premium Dark-theme (Glassmorphism).
+
+**5.1.1. Kiến trúc Tổng thể của Ứng dụng (Dashboard Architecture)**
+
+Thay vì chỉ nộp các đoạn code khô khan hoặc các biểu đồ tĩnh rời rạc trên Jupyter Notebook, nhóm nghiên cứu quyết định phát triển một **Hệ thống Quản trị Thông minh (Business Intelligence Dashboard)** hoàn chỉnh bằng framework `Streamlit` kết hợp với thư viện vẽ biểu đồ tương tác `Plotly`. Mục tiêu là mô phỏng một sản phẩm phần mềm cấp doanh nghiệp (Enterprise-grade Software), nơi Ban Giám đốc có thể tương tác trực tiếp với dữ liệu.
+
+*Sơ đồ luồng kiến trúc và Điều hướng Đa trang (Multi-page Routing):*
+```mermaid
+graph TD
+    Data[("Dữ liệu Parquet<br/>(Đã gán nhãn ABSA)")] --> DataLoader["Hàm load() & Caching"]
+    DataLoader --> Sidebar["Thanh Điều hướng & Lọc<br/>(Brand, Aspect, Source)"]
+    
+    Sidebar --> P1["📊 page_overview()<br/>(Executive Summary & NSS)"]
+    Sidebar --> P2["🔬 page_absa()<br/>(Aspect Heatmap & Verbatim)"]
+    Sidebar --> P3["📈 page_analytics()<br/>(21 Biểu đồ Chuyên sâu)"]
+    Sidebar --> P4["⚡ page_demo()<br/>(Inference Real-time)"]
+    Sidebar --> P5["🤖 page_model()<br/>(Hiệu năng PhoBERT)"]
+    
+    User("Người dùng/Ban Giám đốc") --> Sidebar
+    
+    subgraph "Live Engine"
+        P4 --> Analyzer["AspectSentimentAnalyzer"]
+        Analyzer --> Rules["Lexicon & Rules"]
+    end
+    
+    classDef page fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff;
+    classDef db fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff;
+    classDef core fill:#4c1d95,stroke:#8b5cf6,stroke-width:2px,color:#fff;
+    
+    class P1,P2,P3,P4,P5 page;
+    class Data db;
+    class Analyzer core;
+```
+
+**5.1.2. Kỹ thuật Giao diện Premium Dark-theme và Glassmorphism**
+
+Giao diện mặc định của Streamlit thường có màu trắng (Light-mode) mang lại cảm giác kém sang trọng đối với một hệ thống phân tích dữ liệu chuyên sâu. Để đạt được tiêu chuẩn thẩm mỹ của năm 2026, nhóm đã chèn trực tiếp mã CSS (CSS Injection) thông qua `st.markdown(..., unsafe_allow_html=True)` để ghi đè (override) toàn bộ giao diện, mang lại phong cách **Premium Dark-theme** kết hợp hiệu ứng kính mờ **Glassmorphism**.
+
+*Trích đoạn mã nguồn CSS tùy chỉnh trong `app.py`:*
+```css
+/* ══ GLOBAL DARK BG: Chuyển sắc (Gradient) sang trọng ══ */
+.stApp {
+  background: linear-gradient(160deg, #0a0e27 0%, #0f1535 40%, #131a3d 70%, #0d1230 100%) !important;
+  color: #e8eaed !important;
+}
+
+/* ══ GLASSMORPHISM: Hiệu ứng thẻ kính mờ cho các chỉ số Metric ══ */
+.metric-card {
+  background: linear-gradient(135deg, rgba(20,27,61,0.85), rgba(30,40,80,0.65)) !important;
+  backdrop-filter: blur(24px); /* Làm mờ phông nền phía sau */
+  border: 1px solid rgba(100,120,255,0.12);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(68,138,255,0.12);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ══ TYPOGRAPHY: Tiêu đề đổ màu gradient (Text Gradient) ══ */
+h1 {
+  background: linear-gradient(135deg, #00E676, #448AFF, #CE93D8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+```
+**Phân tích UX/UI:** 
+*   Việc sử dụng nền tối (Dark background) giúp mắt người dùng không bị chói khi quan sát màn hình dày đặc các biểu đồ dữ liệu trong thời gian dài. 
+*   Hiệu ứng `backdrop-filter: blur(24px)` tạo ra chiều sâu không gian (Depth of field), làm cho các thông số (NSS, Tỷ lệ Tích cực) nổi bật lên như đang lơ lửng trên nền tảng.
+
+**5.1.3. Cấu trúc Điều hướng Chức năng Đa luồng**
+
+Hệ thống được thiết kế với Sidebar đóng vai trò làm Trạm điều khiển trung tâm (Control Center). Người dùng có thể lọc dữ liệu theo Thương hiệu (VinFast/BYD), Khía cạnh (Pin, Phần mềm, Dịch vụ), và Nguồn dữ liệu (YouTube, Reddit). Bảng điều khiển gồm 5 phân hệ chính:
+
+1.  **📊 Executive Overview:** Cung cấp cái nhìn toàn cảnh trên cao (Bird-eye view). Sử dụng các hàm `metric_html` tự định nghĩa để render tỷ lệ Positive/Negative và chỉ số Net Sentiment Score (NSS) tổng quan. Biểu đồ Donut Chart (Plotly) hiển thị phân bổ thảo luận.
+2.  **🔬 ABSA Explorer:** Phân hệ quyền lực nhất, bóc tách Cảm xúc theo Khía cạnh (Aspect-based). Tích hợp **Aspect × Brand Heatmap** để so sánh trực diện (Ví dụ: So sánh điểm số khía cạnh Phần mềm giữa VinFast và BYD trên cùng một lưới nhiệt). 
+3.  **📈 Analytics (Deep Dive):** Gọi module phụ `pages_analytics.py` để render 21 biểu đồ chuyên sâu, từ phân tích chuỗi thời gian (Temporal Trends) đến phân bổ tương tác (Engagement Distribution).
+4.  **⚡ Live Demo (Inference):** Một môi trường tương tác thời gian thực. Người dùng nhập một câu bình luận bất kỳ (Ví dụ: *"Pin sạc nhanh nhưng màn hình bị lỗi"*). Hàm `page_demo()` sẽ gọi trực tiếp kiến trúc `AspectSentimentAnalyzer` phân tích tức thời (Inference) ra 2 nhãn Pin (Positive) và Màn hình (Negative) mà không cần tải lại trang.
+5.  **🤖 Model Performance:** Minh bạch hóa các chỉ số đánh giá của mô hình AI, bao gồm độ bao phủ của khía cạnh (Aspect Coverage) và số lượng nhãn đã phân tích, chứng minh độ tin cậy của hệ thống với hội đồng.
 
 **5.2. Kết quả Đánh giá Mô hình (Model Performance)**
 * Đồ thị Training Loss và Validation Accuracy của PhoBERT.
