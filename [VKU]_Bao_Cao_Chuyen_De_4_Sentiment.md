@@ -908,18 +908,42 @@ Sức mạnh thực sự của mạng nơ-ron PhoBERT được thể hiện rõ 
 Thông qua việc kết hợp hệ thống Dashboard tương tác, mạng nơ-ron học sâu PhoBERT và các kỹ thuật Phân tích Dữ liệu trực quan (Data Visualization), hệ thống không chỉ giải quyết trọn vẹn bài toán học máy phức tạp mà còn mở ra một cái nhìn thấu suốt (Insights) về thị trường xe điện Việt Nam. Những phát hiện từ Chương 5 chính là cơ sở dữ liệu sắc bén nhất để chúng ta thiết lập các Đề xuất Chiến lược Kinh doanh ở **Chương 6**.
 
 ### CHƯƠNG 6: KẾT LUẬN VÀ ĐỀ XUẤT GIẢI PHÁP KINH DOANH
+
 **6.1. Tổng kết Kết quả Đạt được**
-* Về mặt công nghệ kỹ thuật (Data & AI Pipeline).
-* Về mặt giá trị khai phá kinh doanh (Business Insights).
+
+Đồ án chuyên đề đã hoàn thành xuất sắc mục tiêu xây dựng một Hệ thống Phân tích Cảm xúc theo Khía cạnh (ABSA) toàn trình (End-to-end), giải quyết triệt để rào cản ngôn ngữ mạng xã hội Tiếng Việt trong ngành công nghiệp Ô tô điện. Những thành tựu cốt lõi bao gồm:
+1.  **Về Kỹ thuật (Engineering):** Thiết kế thành công kiến trúc xử lý ngôn ngữ tự nhiên 5 lớp (MasterPreprocessor) với khả năng chống chịu nhiễu cực cao. Triển khai cấu trúc Gán nhãn Đa khía cạnh dựa trên Toán học Tập hợp (Set Theory) với độ phức tạp $O(1)$.
+2.  **Về Trí tuệ Nhân tạo (AI):** Tinh chỉnh (Fine-tune) thành công mô hình ngôn ngữ lớn PhoBERT, vượt ngưỡng F1-Score $90\%$ trên tập dữ liệu mất cân bằng, đánh bại các phương pháp từ điển truyền thống trong việc nhận diện các câu mỉa mai (Sarcasm).
+3.  **Về Giá trị Ứng dụng (Business Value):** Đóng gói toàn bộ mô hình thành Hệ thống Dashboard Quản trị (Streamlit) với giao diện Premium Dark-theme. Cho phép Ban Giám đốc quan sát 21 biểu đồ động và thực hiện nhận diện cảm xúc tức thời (Real-time Inference) mà không cần kiến thức lập trình.
 
 **6.2. Đề xuất Giải pháp Kinh doanh (Actionable Recommendations)**
-* **Phát triển Sản phẩm (Product):** Các hạng mục cần cải thiện dựa trên chỉ số cảm xúc tiêu cực.
-* **Tiếp thị và Truyền thông (Marketing):** Định hướng thông điệp truyền thông dựa trên thế mạnh cạnh tranh.
-* **Chăm sóc Khách hàng (Customer Support):** Phương án tối ưu hóa dịch vụ hậu mãi và xử lý khủng hoảng thông tin mạng xã hội.
+
+Dựa trên dữ liệu thực chứng từ Bản đồ Nhiệt (Hình 5.7) và Ma trận Sức khỏe (Hình 5.8), nhóm nghiên cứu đề xuất các chiến lược hành động sau:
+
+**A. Đối với Thương hiệu VinFast:**
+*   **Phát triển Sản phẩm (R&D):** Khía cạnh `Phần mềm` đang nằm trong Vùng Khủng hoảng (Nhiều phàn nàn, cảm xúc tiêu cực). R&D cần ưu tiên tuyệt đối việc tung ra các bản vá lỗi không dây (OTA Updates) ổn định hệ thống ADAS và màn hình trung tâm trước khi ra mắt các tính năng mới.
+*   **Tiếp thị và Truyền thông:** Tận dụng triệt để Vùng Ngôi sao (`Thiết kế` và `Vận hành`). Các chiến dịch quảng cáo nên tập trung vào "Cảm giác lái thể thao" và "Không gian nội thất rộng rãi", vì đây là hai điểm chạm tạo ra sự thỏa mãn cao nhất cho tập khách hàng VinFast.
+*   **Chăm sóc Khách hàng:** Nỗi đau về `Dịch vụ Hậu mãi` (Chờ đợi lâu, xưởng dịch vụ quá tải) cần được giải quyết bằng việc số hóa quy trình đặt lịch bảo dưỡng qua App và mở rộng mạng lưới xưởng lưu động (Mobile Service).
+
+**B. Đối với Thương hiệu BYD:**
+*   **Giáo dục Thị trường:** Khía cạnh `Pin & Sạc` của BYD có điểm Sentiment dương tuyệt đối nhưng dung lượng thảo luận (Volume) còn thấp. BYD cần đẩy mạnh các chiến dịch Review thực tế (Test Drive) chứng minh công nghệ Pin Blade an toàn không cháy nổ để đánh thẳng vào tử huyệt (Nỗi lo cháy nổ) của người dùng xe xăng.
+*   **Chiến lược Giá:** `Giá bán` đang là rào cản lớn nhất của BYD tại Việt Nam. Hãng cần cân nhắc chính sách "Thuê Pin" hoặc liên kết ngân hàng hỗ trợ lãi suất 0% để tạo hiệu ứng chim mồi, phá vỡ định kiến "Xe Trung Quốc phải rẻ".
 
 **6.3. Hạn chế của Hệ thống và Hướng phát triển**
-* Hạn chế về nguồn dữ liệu và độ trễ xử lý.
-* Định hướng tích hợp Generative AI và tự động hóa báo cáo trong tương lai.
+
+Mặc dù đạt được độ chính xác cao, hệ thống vẫn tồn tại một số giới hạn:
+1.  **Hạn chế Nguồn dữ liệu:** API của các mạng xã hội như Facebook ngày càng đóng kín, khiến việc thu thập dữ liệu (Crawling) gặp nhiều rào cản kỹ thuật.
+2.  **Định hướng Tương lai (Tầm nhìn 2027):** 
+    *   **Tích hợp Generative AI:** Thay vì chỉ hiển thị biểu đồ tĩnh, hệ thống sẽ tích hợp mô hình Ngôn ngữ tạo sinh (LLMs như GPT-4o hoặc Claude 3.5 Sonnet) qua kiến trúc RAG (Retrieval-Augmented Generation) để tự động viết Báo cáo Phân tích bằng ngôn ngữ tự nhiên định kỳ hàng tuần gửi cho Giám đốc Marketing.
+    *   **Phân tích Đa phương tiện:** Mở rộng từ xử lý Văn bản (Text) sang phân tích Cảm xúc qua Giọng nói (Speech-to-Text) đối với các video Review xe trên TikTok và YouTube.
 
 ---
-*Tài liệu tham khảo*
+
+### TÀI LIỆU THAM KHẢO
+
+[1] D. Q. Nguyen and A. T. Nguyen, *"PhoBERT: Pre-trained language models for Vietnamese"*, Findings of the Association for Computational Linguistics: EMNLP 2020.
+[2] J. Devlin, M. Chang, K. Lee, and K. Toutanova, *"BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"*, NAACL-HLT, 2019.
+[3] Pontiki, M., et al., *"SemEval-2016 Task 5: Aspect Based Sentiment Analysis"*, Proceedings of the 10th International Workshop on Semantic Evaluation, 2016.
+[4] Parasuraman, A., Zeithaml, V. A., & Berry, L. L., *"SERVQUAL: A multiple-item scale for measuring consumer perceptions of service quality"*, Journal of Retailing, 64(1), 12-40, 1988.
+[5] *Streamlit Documentation*, [Online]. Available: https://docs.streamlit.io/
+[6] B. Liu, *"Sentiment Analysis and Opinion Mining"*, Synthesis Lectures on Human Language Technologies, Morgan & Claypool Publishers, 2012.
