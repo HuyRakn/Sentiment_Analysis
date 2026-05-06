@@ -216,10 +216,74 @@ Dưới đây là biểu đồ chứng minh **hiệu quả thực tế của ABS
 ![Biểu đồ Tương quan Cảm xúc theo từng Khía cạnh (Aspect Sentiment)](artifacts/plots/11_sentiment_by_aspect.png)
 *Hình 3.2: Sự phân hóa cảm xúc trên từng khía cạnh độc lập (Kết quả từ hệ thống ABSA).*
 
-**3.3. Kiến trúc Mô hình Học sâu PhoBERT**
-* Kiến trúc Transformer và cơ chế Attention.
-* Ưu điểm của mô hình ngôn ngữ tiếng Việt (PhoBERT) trong việc hiểu ngữ nghĩa và từ lóng mạng xã hội.
-* Kỹ thuật tinh chỉnh (Fine-tuning) mô hình cho tác vụ phân loại đa lớp (Multi-class Classification).
+**3.3. Kiến trúc Mô hình Học sâu PhoBERT và Kỹ thuật Tinh chỉnh (Fine-tuning)**
+
+Để hiện thực hóa bài toán Phân loại Cảm xúc Đa lớp (Multi-class Classification), hệ thống không sử dụng các thuật toán máy học truyền thống (như SVM hay Random Forest) do sự yếu kém trong việc nắm bắt ngữ cảnh tầm xa. Thay vào đó, nhóm áp dụng **PhoBERT** – mô hình ngôn ngữ lớn tiên phong được huấn luyện đặc thù cho Tiếng Việt bởi VinAI, dựa trên kiến trúc gốc RoBERTa.
+
+**3.3.1. Sơ đồ Kiến trúc luồng Suy luận (Inference Flow)**
+
+Quá trình luân chuyển dữ liệu từ một văn bản thô (Raw text) cho đến khi ra được nhãn cảm xúc cuối cùng được mô hình hóa theo sơ đồ thuật toán chuẩn 2026 dưới đây:
+
+```mermaid
+graph TD
+    %% Khối Tiền xử lý
+    subgraph S_Preprocess ["Pha 1: Xử lý Ngữ vựng (Lexical Processing)"]
+        Raw["Văn bản Thô<br/>(Raw Input)"]
+        WordSeg["Tách từ Tiếng Việt<br/>(RDRSegmenter / VnCoreNLP)"]
+        BPE["Byte-Pair Encoding<br/>(BPE Tokenizer)"]
+    end
+
+    %% Khối Kiến trúc Lõi
+    subgraph S_Model ["Pha 2: PhoBERT Architecture (Transformer Encoder)"]
+        InputLayer["[CLS] + Tokens + [SEP]<br/>(Input IDs & Attention Masks)"]
+        Embed["Lớp Nhúng<br/>(Positional & Word Embeddings)"]
+        Attention["Cơ chế Tự chú ý<br/>(Multi-Head Self-Attention)"]
+        FeedFwd["Mạng truyền thẳng<br/>(Feed Forward Network)"]
+    end
+
+    %% Khối Phân loại
+    subgraph S_Head ["Pha 3: Tinh chỉnh Phân loại (Classification Head)"]
+        Pooler["Trích xuất Đặc trưng<br/>(CLS Token Pooled Output)"]
+        Dropout["Dropout Layer<br/>(Ngăn chặn Overfitting)"]
+        Linear["Lớp Tuyến tính<br/>(Linear Classifier: 3 Neurons)"]
+        Softmax["Hàm Softmax<br/>(Xác suất Tích cực/Tiêu cực/Trung tính)"]
+    end
+
+    %% Luồng liên kết
+    Raw --> WordSeg
+    WordSeg --> BPE
+    
+    BPE --> InputLayer
+    InputLayer --> Embed
+    Embed --> Attention
+    Attention --> FeedFwd
+    FeedFwd --> Pooler
+    
+    Pooler --> Dropout
+    Dropout --> Linear
+    Linear --> Softmax
+
+    classDef prep fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
+    classDef model fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef head fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    
+    class Raw,WordSeg,BPE prep;
+    class InputLayer,Embed,Attention,FeedFwd model;
+    class Pooler,Dropout,Linear,Softmax head;
+```
+
+**3.3.2. Sự tối ưu của Cơ chế Tự chú ý (Multi-Head Self-Attention)**
+Điểm làm nên sức mạnh của PhoBERT so với các mô hình LSTM cũ là cơ chế **Self-Attention**. Trong một câu dài như *"Tuy trạm sạc còn thiếu nhưng xe đi rất bốc"*, mô hình sẽ tính toán ma trận trọng số (Attention Weights) để biết rằng tính từ "thiếu" bổ nghĩa cho "trạm sạc" (Aspect 1), còn tính từ "bốc" gắn liền với "xe" (Aspect 2). Thuật toán không xử lý từ theo thứ tự tuần tự từ trái sang phải, mà xử lý đồng thời (parallel) toàn bộ câu, cho phép nó hiểu được các cấu trúc câu phức, câu đảo ngữ, và từ lóng thường thấy trên mạng xã hội Việt Nam.
+
+**3.3.3. Bằng chứng Thực nghiệm: Kết quả Tinh chỉnh (Fine-tuning)**
+Trong quá trình huấn luyện, nhóm đã đóng băng (freeze) các tham số lõi của PhoBERT để tận dụng kiến thức ngữ pháp tiếng Việt sẵn có, và chỉ đào tạo (fine-tune) **Lớp Phân loại tuyến tính (Classification Head)**. Hàm mất mát (Loss Function) được sử dụng là **Cross-Entropy**, kết hợp cùng bộ tối ưu hóa **AdamW**.
+
+Để chứng minh năng lực thực tế của mô hình sau khi hội tụ, dưới đây là **Ma trận Nhầm lẫn (Confusion Matrix)** được trích xuất trực tiếp từ kết quả chạy tập Validation của hệ thống:
+
+![Ma trận Nhầm lẫn đánh giá mô hình PhoBERT](artifacts/plots/18_confusion_matrix.png)
+*Hình 3.3: Kết quả phân loại Cảm xúc thực tế từ hệ thống.*
+
+Nhìn vào đường chéo chính (Main Diagonal) của Ma trận nhầm lẫn, có thể thấy thuật toán có độ chính xác (Precision) và độ phủ (Recall) cực kỳ cao ở cả 3 lớp (Positive, Negative, Neutral). Số lượng các điểm dữ liệu nằm ngoài đường chéo chính (sai số) là rất thấp, chứng minh rằng mô hình PhoBERT đã nắm bắt thành công ngữ cảnh phức tạp của lĩnh vực xe điện. Việc áp dụng mô hình này tạo nền tảng vững chắc và đáng tin cậy để hệ thống BI (Chương 5) nội suy ra các báo cáo Kinh doanh chuẩn xác.
 
 ---
 
