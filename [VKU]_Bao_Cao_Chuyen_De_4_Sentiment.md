@@ -807,8 +807,57 @@ Nhờ bộ dữ liệu siêu sạch từ pha Tiền xử lý (Chương 4), mô h
 Tổng kết lại, với hiệu năng F1-Score xấp xỉ 90%, kiến trúc PhoBERT của chúng ta đã đủ tiêu chuẩn (Production-ready) để áp dụng vào phân tích quy mô lớn 16.000 bình luận mạng xã hội, mở đường cho việc phân tích Kinh doanh (Business Analytics) ở các mục tiếp theo.
 
 **5.3. Đo lường Thị phần Thảo luận và Định vị Thương hiệu (Share of Voice)**
-* Phân bổ thị phần thảo luận (Brand Distribution) và Chỉ số cảm xúc thuần (Net Sentiment Score - NSS).
-* Phân tích xu hướng thời gian (Temporal Trends) và Độ tương tác (Engagement Density) giữa VinFast và BYD.
+
+Sau khi mô hình PhoBERT gán nhãn thành công cho toàn bộ tập dữ liệu 16.000 bản ghi, chúng ta bước vào giai đoạn Phân tích Kinh doanh (Business Intelligence). Trọng tâm đầu tiên là đánh giá **Thị phần Thảo luận (Share of Voice - SOV)** và **Chỉ số Cảm xúc Thuần (Net Sentiment Score - NSS)** để xác định vị thế của VinFast và BYD trên mặt trận truyền thông số.
+
+**5.3.1. Phân bổ Thị phần Thảo luận (Brand Distribution)**
+
+Share of Voice (SOV) là thước đo đong đếm mức độ "chiếm sóng" của một thương hiệu so với đối thủ cạnh tranh trên các kênh thảo luận.
+
+![Biểu đồ Thị phần Thảo luận](artifacts/plots/01_brand_donut.png)
+*Hình 5.3: Biểu đồ Donut Chart phân bổ thị phần thảo luận giữa các hãng xe.*
+
+**Phân tích Dữ liệu:** 
+Nhìn vào biểu đồ, **VinFast hoàn toàn áp đảo thị phần** thảo luận (chiếm trên 70% dung lượng dữ liệu). Điều này xuất phát từ 2 nguyên nhân cốt lõi:
+1.  **Lợi thế Sân nhà (Home-field Advantage):** VinFast là thương hiệu quốc gia, mọi động thái ra mắt xe mới (như VF3, VF5) đều tạo ra luồng sóng thảo luận tự nhiên (Organic traffic) khổng lồ từ lòng tự hào dân tộc lẫn sự hoài nghi của người tiêu dùng trong nước.
+2.  **Sự thâm nhập muộn của BYD:** Mặc dù là "gã khổng lồ" toàn cầu, BYD chỉ mới chính thức tiến vào thị trường Việt Nam vào giữa năm 2024, do đó lượng thảo luận phần lớn tập trung vào sự tò mò ban đầu chứ chưa hình thành cộng đồng người dùng thực tế đông đảo như VinFast.
+
+**5.3.2. Chỉ số Cảm xúc Thuần (Net Sentiment Score - NSS)**
+
+Số lượng thảo luận nhiều (Volume) không đồng nghĩa với việc thương hiệu đang được yêu thích. Để đo lường "chất lượng" của luồng thảo luận, hệ thống áp dụng công thức toán học **Net Sentiment Score (NSS)**:
+$$ NSS = \frac{Count(Positive) - Count(Negative)}{Count(Total)} $$
+Chỉ số NSS dao động từ -1.0 (Hoàn toàn thù ghét) đến +1.0 (Tuyệt đối trung thành). Điểm số $>0$ cho thấy sắc thái tích cực đang kiểm soát truyền thông.
+
+![Biểu đồ So sánh Chỉ số Cảm xúc Thuần](artifacts/plots/12_nss_comparison.png)
+*Hình 5.4: So sánh NSS giữa VinFast và BYD trên toàn bộ tập dữ liệu.*
+
+**Phân tích Dữ liệu:**
+Đồ thị Bar Chart cho thấy một nghịch lý thú vị trong Marketing: Mặc dù VinFast có Volume khổng lồ, nhưng **NSS của VinFast lại biến động mạnh và có xu hướng thấp hơn BYD**.
+*   **Với VinFast:** Sự phân hóa người dùng rất cao (Polarization). Khách hàng trung thành (Vinno) khen ngợi cuồng nhiệt, trong khi nhóm Anti-fan hoặc khách hàng gặp lỗi phần mềm (màn hình đơ, lỗi ắc quy 12V trên VF8 đời đầu) lại để lại cảm xúc tiêu cực cực kỳ gay gắt, kéo tụt chỉ số NSS.
+*   **Với BYD:** Điểm NSS duy trì ở mức dương ổn định. Lý do là người dùng Việt Nam đang có tâm lý "tò mò, khen ngợi thiết kế và công nghệ Pin Blade" của BYD, trong khi chưa có nhiều xe lăn bánh thực tế để phát sinh lỗi vặt, dẫn đến lượng bình luận tiêu cực rất ít.
+
+**5.3.3. Động lực học Chuỗi thời gian (Temporal Dynamics)**
+
+Cảm xúc của đám đông trên mạng xã hội không phải là một đường thẳng tĩnh, mà dao động dữ dội theo các sự kiện thế giới thực (Real-world Events). Hệ thống đã vẽ đồ thị đường (Line Chart) theo trục thời gian (Time-series) để đo lường độ trễ và sự bùng nổ của cảm xúc.
+
+![Biểu đồ Phân bổ Cảm xúc theo Thời gian](artifacts/plots/07_temporal_dynamics.png)
+*Hình 5.5: Phân tích chuỗi thời gian (Temporal Trends) của các nhãn cảm xúc.*
+
+**Phân tích Dữ liệu:**
+Biểu đồ đường chớp nhoáng (Spikes) cho thấy các đỉnh điểm thảo luận luôn đi kèm với sự kiện ra mắt xe. Đáng chú ý:
+*   Các đỉnh nhọn của đường **Positive (Xanh lá)** xuất hiện trùng khớp với thời điểm VinFast công bố giá bán rẻ bất ngờ của chiếc mini-EV VF3, tạo hiệu ứng bùng nổ truyền thông.
+*   Tuy nhiên, các đường **Negative (Đỏ)** cũng đôi khi tăng đột biến ngay sau đó, thường rơi vào giai đoạn giao xe đợt đầu khi người dùng bắt đầu báo cáo lỗi phần mềm hoặc phàn nàn về thái độ phục vụ tại một số xưởng dịch vụ chưa đồng đều.
+
+**5.3.4. Mật độ Tương tác (Engagement Density)**
+
+Trong thế giới mạng xã hội, một bình luận Tiêu cực có 1.000 lượt Like (Tương tác cao) sẽ gây sát thương thương hiệu nặng nề gấp vạn lần 100 bình luận Tiêu cực nhưng không ai quan tâm. Do đó, hệ thống tích hợp phân tích **Mật độ Tương tác (Engagement Density)** bằng bản đồ nhiệt.
+
+![Bản đồ Nhiệt Mật độ Tương tác](artifacts/plots/20_engagement_density_heatmap.png)
+*Hình 5.6: Bản đồ nhiệt thể hiện sự phân bổ Tương tác theo Nhãn Cảm xúc.*
+
+**Phân tích Dữ liệu:**
+Bản đồ nhiệt chỉ ra một sự thật nghiệt ngã của hiệu ứng "Thiên kiến Tiêu cực" (Negativity Bias): **Các bình luận Tiêu cực (Negative) thu hút lượng Likes và Replies trung bình cao hơn gấp 1.5 lần so với bình luận Tích cực (Positive).**
+Những chủ đề liên quan đến "xe sập nguồn", "lỗi pin", hay "nằm đường chờ cứu hộ" thường tạo ra các luồng tranh cãi nảy lửa (Flame wars) kéo dài hàng tuần. Điều này là hồi chuông cảnh báo cấp thiết cho phòng Chăm sóc Khách hàng (CSKH): Không thể chỉ đếm số lượng bình luận, mà phải dùng hệ thống phân tích Engagement để ưu tiên dập tắt các đốm lửa tiêu cực trước khi chúng biến thành khủng hoảng truyền thông lan rộng.
 
 **5.4. Phân tích Định tính và Khám phá Khía cạnh (Qualitative & Aspect Deep Dive)**
 * So sánh sức khỏe thương hiệu qua bản đồ nhiệt khía cạnh (Aspect Heatmap) và Radar Chart.
