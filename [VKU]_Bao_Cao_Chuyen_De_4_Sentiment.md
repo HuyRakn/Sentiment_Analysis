@@ -186,14 +186,35 @@ $$NSS = \left( \frac{\sum \text{Positive Mentions} - \sum \text{Negative Mention
 
 Dưới đây là biểu đồ chứng minh **kết quả chạy thực tế** của hệ thống do nhóm xây dựng, đo lường trực tiếp chỉ số NSS tổng quan giữa VinFast và BYD từ hàng ngàn bản ghi dữ liệu thực tế:
 
-![Biểu đồ so sánh Chỉ số Cảm xúc Thuần (Net Sentiment Score) giữa VinFast và BYD](/Users/thanhhuy_23/Workspace/application/colab/SENTIMENT/artifacts/plots/12_nss_comparison.png)
+![Biểu đồ so sánh Chỉ số Cảm xúc Thuần (Net Sentiment Score) giữa VinFast và BYD](artifacts/plots/12_nss_comparison.png)
 *Hình 3.1: So sánh đối chuẩn (Benchmarking) chỉ số NSS thực tế từ hệ thống.*
 
 Việc ứng dụng toán học vào đo lường cảm xúc giúp hệ thống loại bỏ những nhận định cảm tính. Thay vì nói "có vẻ người ta thích VinFast hơn", chúng ta có một con số cụ thể, chứng minh sức mạnh thuật toán tác động trực tiếp vào góc độ đánh giá doanh nghiệp. Tuy nhiên, như đã trình bày ở Chương 1, việc chỉ dừng lại ở NSS tổng quan là chưa đủ, mà cần phải bóc tách sâu hơn vào từng đặc tính sản phẩm (ABSA) sẽ được trình bày ở phần tiếp theo.
 
-**3.2. Phương pháp Phân tích Cảm xúc Đa khía cạnh (ABSA)**
-* Khái niệm ABSA và sự vượt trội so với phân tích cảm xúc mức độ câu (Sentence-level).
-* Phương pháp tách trích khía cạnh (Aspect Extraction) và trích xuất cửa sổ ngữ cảnh (Context Window).
+**3.2. Phương pháp Phân tích Cảm xúc Đa khía cạnh (Aspect-Based Sentiment Analysis - ABSA)**
+
+**3.2.1. Sự vượt trội so với Phân tích Cảm xúc Mức độ câu (Sentence-level)**
+Phân tích cảm xúc mức độ câu (Sentence-level Sentiment Analysis) truyền thống hoạt động dựa trên giả định rằng mỗi câu chỉ chứa một ý kiến duy nhất về một thực thể duy nhất. Tuy nhiên, trong thực tế dữ liệu mạng xã hội ngành ô tô, giả định này hoàn toàn sụp đổ. Một khách hàng có thể viết: *"Màn hình giải trí của VinFast VF8 rất mượt và đẹp, nhưng hệ thống phanh thỉnh thoảng có tiếng kêu khó chịu"*.
+*   Nếu dùng NLP truyền thống: Hệ thống sẽ gán nhãn **Trung tính (Neutral)** vì tính từ khen ("mượt", "đẹp") bù trừ với tính từ chê ("khó chịu").
+*   Nếu dùng **ABSA**: Hệ thống sẽ bóc tách và trả về hai kết quả hoàn toàn độc lập:
+    *   Thực thể (Aspect) `SOFTWARE_TECHNOLOGY` $\rightarrow$ Nhãn: **Positive**.
+    *   Thực thể (Aspect) `PERFORMANCE_DRIVING` $\rightarrow$ Nhãn: **Negative**.
+
+Sự chuyển dịch này là bước tiến cốt lõi giúp các nhà quản trị không bị "ảo giác dữ liệu" (Data Hallucination) khi đọc báo cáo tổng quan.
+
+**3.2.2. Phương pháp Trích xuất Khía cạnh và Cửa sổ Ngữ cảnh (Context Window)**
+Để hiện thực hóa ABSA trên tập dữ liệu đồ án, nhóm nghiên cứu đã xây dựng một thuật toán trích xuất dựa trên cơ chế **Cửa sổ Ngữ cảnh (Context Window)**. Thuật toán này không đưa toàn bộ câu văn dài vào mô hình học sâu, mà thực hiện cơ chế cắt xén (cropping) thông minh xung quanh từ khóa mục tiêu.
+
+*Luồng thuật toán thực tế áp dụng trong file `absa.py`:*
+1. **Aspect Detection (Phát hiện từ khóa):** Sử dụng danh sách từ điển chuyên ngành (Linguistic Constants) để dò tìm các thực thể trong câu (VD: dò thấy từ "pin", "sạc" $\rightarrow$ kích hoạt khía cạnh `BATTERY_CHARGING`).
+2. **Context Extraction (Trích xuất Ngữ cảnh):** Khi tìm thấy từ khóa mục tiêu ở vị trí $i$, thuật toán sẽ không lấy cả câu dài 100 từ, mà chỉ cắt một cửa sổ ngữ cảnh bao gồm $W$ từ phía trước và $W$ từ phía sau từ khóa. Trong đồ án này, nhóm thiết lập ngưỡng **$W = 7$ tokens**.
+   * *Công thức cắt chuỗi:* $Context = [Token_{i-7}, ..., Token_i, ..., Token_{i+7}]$
+3. **Sentiment Classification (Phân loại Cảm xúc):** Chỉ phần chuỗi văn bản đã bị cắt ngắn (Context Window) này mới được đưa vào mô hình học sâu PhoBERT để dự đoán cảm xúc. Điều này ép mô hình ngôn ngữ phải "tập trung sự chú ý" (Attention) vào các tính từ mô tả sát ngay bên cạnh danh từ khía cạnh, ngăn chặn hiện tượng "nhiễu chéo cảm xúc" (Sentiment Bleeding) từ các khía cạnh khác trong cùng câu.
+
+Dưới đây là biểu đồ chứng minh **hiệu quả thực tế của ABSA** từ hệ thống. Thay vì chỉ có 1 cột cảm xúc chung, hệ thống đã vẽ ra bức tranh đa chiều cho 6 khía cạnh khác nhau của VinFast và BYD:
+
+![Biểu đồ Tương quan Cảm xúc theo từng Khía cạnh (Aspect Sentiment)](artifacts/plots/11_sentiment_by_aspect.png)
+*Hình 3.2: Sự phân hóa cảm xúc trên từng khía cạnh độc lập (Kết quả từ hệ thống ABSA).*
 
 **3.3. Kiến trúc Mô hình Học sâu PhoBERT**
 * Kiến trúc Transformer và cơ chế Attention.
