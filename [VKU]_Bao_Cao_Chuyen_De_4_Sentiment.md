@@ -288,9 +288,66 @@ Nhìn vào đường chéo chính (Main Diagonal) của Ma trận nhầm lẫn, 
 ---
 
 ### CHƯƠNG 4: XÂY DỰNG DATA PIPELINE & TIỀN XỬ LÝ DỮ LIỆU
-**4.1. Pha Thu thập Dữ liệu (Data Acquisition)**
-* Cấu trúc bộ thu thập đa nền tảng (YouTube Scraper, Forum Scraper).
-* Dữ liệu tổng hợp và các rào cản kỹ thuật (Anti-bot, Rate limits).
+**4.1. Pha Thu thập Dữ liệu (Data Acquisition) và Kiến trúc Ingestion**
+
+Để huấn luyện một mô hình học sâu hiểu được ngôn ngữ mạng xã hội chuyên ngành ô tô, dữ liệu cần có độ phủ (Coverage) cao trên nhiều nền tảng khác nhau. Nguồn dữ liệu truyền thống (như báo chí chính thống) thường mang giọng văn trung lập và không phản ánh đúng "nỗi đau" (pain points) của khách hàng. Do đó, nhóm xây dựng một hệ thống **Data Acquisition Pipeline** tự động thu thập từ 3 hệ sinh thái: Video Review (YouTube), Diễn đàn chuyên sâu (Otofun) và Sàn thương mại điện tử (Shopee - phụ kiện xe điện).
+
+**4.1.1. Sơ đồ Kiến trúc Thu thập (Scraping Architecture)**
+
+Để đảm bảo tính bền vững (Resilience) khi đối mặt với cơ chế chặn Bot của các nền tảng, hệ thống áp dụng luồng thiết kế được truyền cảm hứng từ Kiến trúc Huy chương (Medallion Architecture) trong kỹ sư dữ liệu:
+
+```mermaid
+graph TD
+    %% Tầng Nguồn (Source Layer)
+    subgraph S_Source ["Tầng Dữ liệu Nguồn (External Sources)"]
+        YT[YouTube API v3<br/>Review Videos]
+        Forum[Otofun DOM<br/>Luồng Thảo luận]
+        Ecom[Shopee API<br/>Đánh giá phụ kiện]
+    end
+
+    %% Tầng Thu thập (Ingestion Layer)
+    subgraph S_Ingest ["Tầng Thu thập & Xử lý (Ingestion & Proxy)"]
+        API_Wrapper[Google API Client<br/>(Pagination Handler)]
+        Selenium[Selenium Webdriver<br/>(Headless Browser)]
+        AntiBot[Cơ chế Vượt rào<br/>(Dynamic User-Agent & Sleep)]
+    end
+
+    %% Tầng Lưu trữ Thô (Bronze Storage)
+    subgraph S_Bronze ["Tầng Lưu trữ Thô (Bronze Layer)"]
+        CSV[(Raw Corpus CSV<br/>Dữ liệu chưa xử lý)]
+        Parquet[(Raw Parquet<br/>Tối ưu hóa I/O)]
+    end
+
+    %% Luồng kết nối
+    YT --> API_Wrapper
+    Forum --> AntiBot
+    Ecom --> AntiBot
+    AntiBot --> Selenium
+    
+    API_Wrapper --> CSV
+    Selenium --> CSV
+    CSV --> Parquet
+
+    classDef source fill:#ffe0b2,stroke:#f57c00,stroke-width:2px;
+    classDef ingest fill:#e1bee7,stroke:#8e24aa,stroke-width:2px;
+    classDef bronze fill:#d7ccc8,stroke:#5d4037,stroke-width:2px;
+    
+    class YT,Forum,Ecom source;
+    class API_Wrapper,Selenium,AntiBot ingest;
+    class CSV,Parquet bronze;
+```
+
+**4.1.2. Kỹ thuật Thu thập và Rào cản Hệ thống**
+1. **YouTube API v3:** Kỹ thuật thu thập bình luận sử dụng cơ chế Phân trang (Pagination/NextPageToken) để quét hàng ngàn bình luận bên dưới các video review xe VinFast VF8, VF9 và BYD Atto 3, Seal. Thách thức lớn nhất ở đây là Rate Limits (giới hạn số lượt gọi API/ngày) của Google. Nhóm phải thiết kế cơ chế lưu trữ đệm (Checkpoint) để hệ thống tự động tạm dừng và tiếp tục vào chu kỳ API tiếp theo.
+2. **Otofun Forum (Selenium):** Diễn đàn Otofun áp dụng cơ chế bảo vệ Cloudflare Anti-bot. Do đó, việc dùng thư viện requests đơn thuần sẽ bị chặn mã lỗi 403 Forbidden. Nhóm phải khởi tạo `Selenium WebDriver` ở chế độ Headless, gán thẻ User-Agent giả lập (Spoofing) kết hợp với hàm chờ ngẫu nhiên (`time.sleep`) để bắt chước hành vi cuộn trang của người thật trước khi trích xuất dữ liệu DOM (Document Object Model).
+
+**4.1.3. Bằng chứng Thực nghiệm: Quy mô và Động lực học Thời gian (Temporal Dynamics)**
+Kết quả của pha thu thập (Bronze Layer) đã đóng gói thành công tập Corpus với hơn **16.000 bản ghi thô**. Để chứng minh tính lịch sử và quy mô của dữ liệu, dưới đây là biểu đồ **Động lực học Thời gian (Temporal Dynamics)** được kết xuất từ hệ thống:
+
+![Biểu đồ Khối lượng Thảo luận theo Thời gian (Temporal Dynamics)](artifacts/plots/07_temporal_dynamics.png)
+*Hình 4.1: Mật độ dữ liệu thu thập được phân bổ theo chuỗi thời gian (Time-series).*
+
+Nhìn vào biểu đồ, có thể thấy rõ dòng chảy dữ liệu (Data Volume) có những đỉnh điểm (Spikes) đột biến tương ứng với các sự kiện ra mắt xe mới hoặc khủng hoảng truyền thông của VinFast và BYD. Việc cào dữ liệu thành công một chuỗi thời gian dài (Time-series) giúp mô hình PhoBERT học được sự biến thiên của từ vựng qua các năm, đảm bảo tính cập nhật của AI.
 
 **4.2. Pha Tiền xử lý Ngôn ngữ Tự nhiên (NLP Preprocessing)**
 * 8 giai đoạn chuẩn hóa văn bản Tiếng Việt: Xóa HTML rác, Chuẩn hóa Unicode, Tách từ (Word Segmentation), Xử lý từ viết tắt/Teen code, Lọc Stopwords.
