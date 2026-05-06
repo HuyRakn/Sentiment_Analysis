@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EV Sentiment Analysis — VinFast vs BYD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#09090b;--card:#18181b;--card-hover:#27272a;--border:#27272a;--border-hover:#3f3f46;--text:#fafafa;--text-muted:#a1a1aa;--text-dim:#71717a;--accent:#3b82f6;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#8b5cf6;--radius:12px}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.hero{position:relative;min-height:70vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(59,130,246,.15),transparent),radial-gradient(ellipse 60% 40% at 80% 50%,rgba(16,185,129,.08),transparent),radial-gradient(ellipse 60% 40% at 20% 80%,rgba(139,92,246,.08),transparent)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,black 40%,transparent 100%)}
+.hero-content{position:relative;z-index:2;max-width:800px;padding:0 24px}
+.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;letter-spacing:-.03em;line-height:1.05;background:linear-gradient(135deg,#fff 0%,#a1a1aa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border:1px solid var(--border);border-radius:999px;font-size:.8rem;color:var(--text-muted);margin-bottom:24px;backdrop-filter:blur(8px);background:rgba(24,24,27,.6)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero p{font-size:1.15rem;color:var(--text-muted);max-width:600px;margin:20px auto 0;line-height:1.7}
+.stats-row{display:flex;gap:32px;justify-content:center;margin-top:48px;flex-wrap:wrap}
+.stat{text-align:center}
+.stat-value{font-size:2rem;font-weight:800;font-family:'JetBrains Mono',monospace}
+.stat-label{font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.section{max-width:1280px;margin:0 auto;padding:80px 24px}
+.section-header{margin-bottom:48px}
+.section-header h2{font-size:2rem;font-weight:800;letter-spacing:-.02em}
+.section-header p{color:var(--text-muted);margin-top:8px;font-size:1rem}
+.section-label{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;transition:all .2s ease}
+.card:hover{border-color:var(--border-hover);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.heatmap-grid{display:grid;gap:2px;margin-top:24px}
+.heatmap-cell{padding:16px;text-align:center;border-radius:8px;transition:transform .2s}
+.heatmap-cell:hover{transform:scale(1.02);z-index:1}
+.heatmap-header{font-weight:700;font-size:.85rem;color:var(--text-muted);padding:12px;text-align:center}
+.heatmap-label{font-weight:600;font-size:.85rem;display:flex;align-items:center;gap:8px;padding:12px}
+.heatmap-nss{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.1rem}
+.heatmap-count{font-size:.7rem;color:rgba(255,255,255,.5);margin-top:2px}
+.aspect-card{text-align:center;padding:32px 20px}
+.aspect-card .emoji{font-size:2rem;margin-bottom:12px}
+.aspect-card .name{font-weight:700;font-size:.9rem;margin-bottom:16px}
+.aspect-nss{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:800}
+.aspect-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin-top:12px;gap:1px}
+.aspect-bar div{height:100%;border-radius:3px}
+.quote-card{border-left:3px solid var(--border);padding:16px 20px;margin:8px 0;background:rgba(24,24,27,.5);border-radius:0 8px 8px 0}
+.quote-card.positive{border-left-color:var(--green)}
+.quote-card.negative{border-left-color:var(--red)}
+.quote-text{font-size:.9rem;color:var(--text-muted);line-height:1.6;font-style:italic}
+.quote-meta{font-size:.7rem;color:var(--text-dim);margin-top:8px;display:flex;gap:12px}
+.quote-meta span{display:inline-flex;align-items:center;gap:4px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:24px;overflow-x:auto}
+.tab{padding:10px 20px;font-size:.85rem;font-weight:500;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab:hover{color:var(--text-muted)}
+.tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.tab-content{display:none}.tab-content.active{display:block}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:80px 0}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.fade-in{opacity:0;transform:translateY(20px);transition:all .6s ease}.fade-in.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="badge"><span class="dot"></span> PhoBERT ABSA Pipeline v5.2</div>
+    <h1>EV Sentiment Analysis</h1>
+    <p>Aspect-Based Sentiment Analysis of Vietnamese electric vehicle community discourse — VinFast vs BYD</p>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-value" style="color:var(--text)">13,049</div><div class="stat-label">Records Analyzed</div></div>
+      <div class="stat"><div class="stat-value" style="color:var(--green)">47.5%</div><div class="stat-label">Positive</div></div>
+      <div class="stat"><div class="stat-value" style="color:var(--red)">11.1%</div><div class="stat-label">Negative</div></div>
+      <div class="stat"><div class="stat-value" style="color:var(--accent)">+0.364</div><div class="stat-label">Net Sentiment</div></div>
+      <div class="stat"><div class="stat-value" style="color:var(--amber)">31,317</div><div class="stat-label">Engagements</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="section fade-in">
+  <div class="section-header">
+    <div class="section-label">📊 Overview</div>
+    <h2>Brand Comparison</h2>
+    <p>Sentiment distribution across Vietnamese EV brands</p>
+  </div>
+  <div class="grid-2">
+    <div class="card" id="chart-brand-dist"></div>
+    <div class="card" id="chart-brand-sent"></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section fade-in">
+  <div class="section-header">
+    <div class="section-label">🔬 Core Analysis</div>
+    <h2>Aspect-Based Sentiment</h2>
+    <p>Each aspect is analyzed with its own sentiment — not a global label</p>
+  </div>
+  <div id="heatmap-container"></div>
+  <div style="margin-top:48px">
+    <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:24px">Sentiment per Aspect</h3>
+    <div class="grid-3" id="aspect-cards"></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section fade-in">
+  <div class="section-header">
+    <div class="section-label">💬 Evidence</div>
+    <h2>Verbatim Quotes</h2>
+    <p>Real user comments supporting the analysis</p>
+  </div>
+  <div class="tabs" id="quote-tabs"></div>
+  <div id="quote-panels"></div>
+</div>
+
+<div class="divider"></div>
+
+<div class="section fade-in" style="padding-bottom:120px">
+  <div class="section-header">
+    <div class="section-label">🤖 Methodology</div>
+    <h2>Pipeline Architecture</h2>
+    <p>PhoBERT-based ABSA with window-based context extraction</p>
+  </div>
+  <div class="grid-3">
+    <div class="card" style="text-align:center;padding:32px">
+      <div style="font-size:2rem;margin-bottom:12px">🌐</div>
+      <div style="font-weight:700;margin-bottom:8px">Multi-Source Collection</div>
+      <div style="font-size:.85rem;color:var(--text-muted)">YouTube, Reddit, Shopee, Forums — 16,000+ comments</div>
+    </div>
+    <div class="card" style="text-align:center;padding:32px">
+      <div style="font-size:2rem;margin-bottom:12px">🧠</div>
+      <div style="font-weight:700;margin-bottom:8px">PhoBERT Encoder</div>
+      <div style="font-size:.85rem;color:var(--text-muted)">Window-based context extraction + sentiment classification per aspect</div>
+    </div>
+    <div class="card" style="text-align:center;padding:32px">
+      <div style="font-size:2rem;margin-bottom:12px">📊</div>
+      <div style="font-weight:700;margin-bottom:8px">6 Aspect Dimensions</div>
+      <div style="font-size:.85rem;color:var(--text-muted)">Battery, Software, Performance, Design, Service, Price</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const D = {"total": 13049, "pos_pct": 47.5, "neg_pct": 11.1, "overall_nss": 0.364, "eng": 31317, "brand_dist": {"VinFast": 9577, "BYD": 3472}, "heatmap": [{"aspect": "🔋 Battery & Charging", "VinFast": {"nss": -0.359, "n": 1451, "pos": 364, "neg": 885, "neu": 202}, "BYD": {"nss": -0.406, "n": 749, "pos": 178, "neg": 482, "neu": 89}}, {"aspect": "💻 Software & Tech", "VinFast": {"nss": -0.043, "n": 322, "pos": 125, "neg": 139, "neu": 58}, "BYD": {"nss": 0.016, "n": 61, "pos": 27, "neg": 26, "neu": 8}}, {"aspect": "🏎️ Performance", "VinFast": {"nss": -0.159, "n": 672, "pos": 226, "neg": 333, "neu": 113}, "BYD": {"nss": -0.211, "n": 246, "pos": 86, "neg": 138, "neu": 22}}, {"aspect": "🎨 Design & Interior", "VinFast": {"nss": -0.032, "n": 1140, "pos": 475, "neg": 512, "neu": 153}, "BYD": {"nss": -0.076, "n": 407, "pos": 169, "neg": 200, "neu": 38}}, {"aspect": "🛠️ Service & Aftersales", "VinFast": {"nss": -0.197, "n": 390, "pos": 129, "neg": 206, "neu": 55}, "BYD": {"nss": -0.14, "n": 164, "pos": 63, "neg": 86, "neu": 15}}, {"aspect": "💰 Price & Value", "VinFast": {"nss": -0.215, "n": 1370, "pos": 459, "neg": 754, "neu": 157}, "BYD": {"nss": -0.192, "n": 485, "pos": 173, "neg": 266, "neu": 46}}], "aspect_data": [{"name": "🔋 Battery & Charging", "key": "BATTERY_CHARGING", "pos": 542, "neg": 1367, "neu": 291, "nss": -0.375, "total": 2200}, {"name": "💻 Software & Tech", "key": "SOFTWARE_TECHNOLOGY", "pos": 152, "neg": 165, "neu": 66, "nss": -0.034, "total": 383}, {"name": "🏎️ Performance", "key": "PERFORMANCE_DRIVING", "pos": 312, "neg": 471, "neu": 135, "nss": -0.173, "total": 918}, {"name": "🎨 Design & Interior", "key": "DESIGN_INTERIOR", "pos": 644, "neg": 712, "neu": 191, "nss": -0.044, "total": 1547}, {"name": "🛠️ Service & Aftersales", "key": "SERVICE_AFTERSALES", "pos": 192, "neg": 292, "neu": 70, "nss": -0.181, "total": 554}, {"name": "💰 Price & Value", "key": "PRICE_VALUE", "pos": 632, "neg": 1020, "neu": 203, "nss": -0.209, "total": 1855}], "quotes": {"BATTERY_CHARGING": {"positive": [{"text": "M đang chạy VF5 được 6 tháng Nếu so với trước kia chạy Lux A thì đúng là siêu siêu tiết kiệm. Tháng tết m đi gần 4000km mà chỉ hết có 1tr6 thuê pin + vs 1tr5 tiền sạc . Nếu so với Lux A thì phải tầm h", "brand": "VinFast", "source": "youtube"}, {"text": "Mình đã đi được hơn 2.000km nói chung cảm giác lái rất ok, ADAS thì đang thua vfe34 mỗi khi xe dừng thì quạt gió kêu to, tắt điều hoà thì hết kêu. Có lẽ cần thêm thời gian cho Vf tinh chỉnh. Chúng ta ", "brand": "VinFast", "source": "youtube"}, {"text": "Cái ăn tiền nhất của xe này là sử dụng tiết kiệm thì kênh ko nói\nTầm 500đ/1km\nReview quá thiếu sót", "brand": "VinFast", "source": "youtube"}, {"text": "Mình là một trong số 1000 người đầu tiên sử dụng xe điện của Vinfast. Sau gần 3 năm chạy thì chỉ có 1 câu thôi \"lựa chọn đúng đắn\"\n1. Hơi xăng trên xe hoàn toàn không. Mẹ & vợ mình đi không bị say xe\n", "brand": "VinFast", "source": "youtube"}, {"text": "Mình là chủ xe\nĐặt cọc tiên phong nên được giảm 30tr. Mua đứt pin và lăn bánh tỉnh toàn bộ là 508 tr\nƯu điểm: \n- Mạnh nhất phân khúc, êm ái và đầm chắc\n- Cảm giác lái rất ổn và dễ kiểm soát khi chạy v", "brand": "VinFast", "source": "youtube"}], "negative": [{"text": "người ta hỏi sạc ở đâu, là hỏi trạm sạc, lại chỉ vào cái lỗ sạc trên xe, đầu đất", "brand": "BYD", "source": "youtube"}, {"text": "Mình đã đặt cọc chiếc vf6 plus + pin, Adas, 8 túi khí và khung gầm đầm chắc của vf6 là thứ đáng tiền nhất mà mình quyết định mua vf6 plus.", "brand": "VinFast", "source": "youtube"}, {"text": "Ko thể so sánh giá ô tô tại Việt Nam với Trung quốc, vì 1 số yếu tố sau:\n1. Trên thế giới không có nước nào sản xuất xe điện rẻ hơn TQ.\n2. Bất kỳ xe nào bán ở Việt Nam đều đắt hơn các nước khác, kể cả", "brand": "VinFast", "source": "youtube"}, {"text": "E34 của mình cũng đã đc 1 năm với 20k km, quá xứng đáng với tiên phong .Yêu e nó đến 5 năm sẽ đổi sang phiên bản cao hơn của vinfast", "brand": "VinFast", "source": "youtube"}, {"text": "Mấy bố bảo xe ByD hơn xe V, các ông phán như đúng rồi 😅. Nó làm chủ từ A đến Z pin, khung gầm, động cơ, bán hơn 20 triệu xe / năm trong khi V đặt mục tiêu 200k xe. Nó mà có trạm sạc thì V ăn cám. Mà t", "brand": "BYD", "source": "youtube"}]}, "SOFTWARE_TECHNOLOGY": {"positive": [{"text": "Dành cho bác nào đang có ý định mua,\n Ưu điểm: nhiều công nghệ làm mát ghế, adas loại xin lv2 đi rất nhàn, cam 360 nét, hud, 8 túi khí cảnh báo các kiểu tự đong phanh,... Nhiều nói chung công nghệ thì", "brand": "VinFast", "source": "youtube"}, {"text": "Có 1 số điều mà video này ad nói chưa đúng hoặc chưa rõ:\n1. Công suất vf6 base là bằng vf5 (134HP) không phải là 174HP - vấn đề này cũng k quan trọng lắm vì xe điện có bằng công suất xe xăng thì vẫn c", "brand": "VinFast", "source": "youtube"}, {"text": "Mình không thể nào chấp nhận việc tất cả tính năng trên bảng điều khiển dành cho người lái dồn hết vào cái màn hình vốn dành cho mục đích giải trí kia, muốn quan sát tốc độ, các thông số khác trong kh", "brand": "VinFast", "source": "youtube"}, {"text": "Sau khi trải nghiệm 13k km\n\n+ Đi xe sườn chắc chắn, đầm tốt\r\n+ Tăng tốc nhanh, vượt sướng\r\n+ Ghế rộng , êm, dễ ngủ\r\n+ Cách âm tốt\n+ Mở sport đạp như bay\n+ Sướng người ngồi sau\r\n\r\n- Xi nhan tệ\n- Phần m", "brand": "VinFast", "source": "youtube"}, {"text": "hi vọng càng nhiều người dùng thì VF càng có nhiều data để sửa lại phần mềm cho chuẩn :D nghe tới đoạn hết acquy thì t nghĩ nên để màn hình có thêm cài đặt chế độ sleep như máy tính , muốn xem % pin t", "brand": "VinFast", "source": "youtube"}], "negative": [{"text": "đang chạy Feliz S đc 1 tháng, vợ mình đang đi A2 được 3 tháng nay, nói chung là quá ok với nhu cầu của gia đình mình. \nFeliz S đi trung bình đều ga ko phóng nhanh phanh gấp thì đã sau 6 vòng sạc, đi đ", "brand": "VinFast", "source": "youtube"}, {"text": "Mình là một trong số 1000 người đầu tiên sử dụng xe điện của Vinfast. Sau gần 3 năm chạy thì chỉ có 1 câu thôi \"lựa chọn đúng đắn\"\n1. Hơi xăng trên xe hoàn toàn không. Mẹ & vợ mình đi không bị say xe\n", "brand": "VinFast", "source": "youtube"}, {"text": "Mình đã đặt cọc chiếc vf6 plus + pin, Adas, 8 túi khí và khung gầm đầm chắc của vf6 là thứ đáng tiền nhất mà mình quyết định mua vf6 plus.", "brand": "VinFast", "source": "youtube"}, {"text": "Datbike là thương hiệu Việt, rất ủng hộ nhưng từ góc độ người quan sát thì em thấy có 1 vài điểm hơi gợn:\n1. Cách truyền thông có vẻ chưa hiệu quả lắm. Cảm giác là ko tạo được tiếng vang đủ cho thương", "brand": "BYD", "source": "youtube"}, {"text": "Sắp có nâng cấp phần mềm, nghe bảo sẽ làm ga nhẹ và mượt hơn trong giải tua thấp, con này nhà mình đã mua và cực kỳ hài lòng", "brand": "VinFast", "source": "youtube"}]}, "PERFORMANCE_DRIVING": {"positive": [{"text": "E sử dụng VF8 eco thấy cũng gần như văn phòng di động rồi, lái sướng, mạnh mẽ mượt mà, trang bị an toàn tuyệt vời, lái cao tốc và đường xa rất nhàn, thơm tho, chi phí sử dụng siêu rẻ. Điểm yếu là gầm ", "brand": "VinFast", "source": "youtube"}, {"text": "đang chạy Feliz S đc 1 tháng, vợ mình đang đi A2 được 3 tháng nay, nói chung là quá ok với nhu cầu của gia đình mình. \nFeliz S đi trung bình đều ga ko phóng nhanh phanh gấp thì đã sau 6 vòng sạc, đi đ", "brand": "VinFast", "source": "youtube"}, {"text": "Mình là một trong số 1000 người đầu tiên sử dụng xe điện của Vinfast. Sau gần 3 năm chạy thì chỉ có 1 câu thôi \"lựa chọn đúng đắn\"\n1. Hơi xăng trên xe hoàn toàn không. Mẹ & vợ mình đi không bị say xe\n", "brand": "VinFast", "source": "youtube"}, {"text": "Mình là chủ xe\nĐặt cọc tiên phong nên được giảm 30tr. Mua đứt pin và lăn bánh tỉnh toàn bộ là 508 tr\nƯu điểm: \n- Mạnh nhất phân khúc, êm ái và đầm chắc\n- Cảm giác lái rất ổn và dễ kiểm soát khi chạy v", "brand": "VinFast", "source": "youtube"}, {"text": "Nhiều đứa hài thật, không biết có bằng lái chưa chứ đừng nói tới việc mua xe nhưng thích chê người có tiền bán xe châu Âu đi mua xe TQ. Tư duy thế nghèo mãi là phải. Mua ô tô là thứ tiêu sản, người mà", "brand": "BYD", "source": "youtube"}], "negative": [{"text": "Mình thì nghĩ cái gì cũng có khởi đầu. Mình đã liên tục ủng hộ Xanh SM từ lúc nó ra mắt. Thực sự bất ngờ khi trải nghiệm. Máy xe mạnh, êm, gần như không phát thải vào mặt người đi sau là mình đã cảm t", "brand": "VinFast", "source": "youtube"}, {"text": "Mấy bố bảo xe ByD hơn xe V, các ông phán như đúng rồi 😅. Nó làm chủ từ A đến Z pin, khung gầm, động cơ, bán hơn 20 triệu xe / năm trong khi V đặt mục tiêu 200k xe. Nó mà có trạm sạc thì V ăn cám. Mà t", "brand": "BYD", "source": "youtube"}, {"text": "Ốp điện thoại gắn xe VF8 dễ lắp, giữ chắc, không rung khi đi đường xấu.", "brand": "VinFast", "source": "shopee"}, {"text": "Byd thương hiệu lớn, xe thiết kế đẹp, lái hay", "brand": "BYD", "source": "youtube"}, {"text": "xe này không có gì phải chê với mức giá đó, hơn nữa rất phù hợp cho những cặp vk,ck con cái mà đi làm khoảng 7,8 chục km loanh quanh trở lại . vk ck già hưu đi thư giãn thăm chơi bạn bè , chẳng thể đò", "brand": "VinFast", "source": "youtube"}]}, "DESIGN_INTERIOR": {"positive": [{"text": "E sử dụng VF8 eco thấy cũng gần như văn phòng di động rồi, lái sướng, mạnh mẽ mượt mà, trang bị an toàn tuyệt vời, lái cao tốc và đường xa rất nhàn, thơm tho, chi phí sử dụng siêu rẻ. Điểm yếu là gầm ", "brand": "VinFast", "source": "youtube"}, {"text": "Mình đang chạy Lux SA, nói thật ngoài cái tốn xăng ra thì mọi thứ đều rất OK, tự hào, xe mạnh mẽ, khung gầm chắc chắn, sơn mấy năm vẫn bóng đẹp. Còn tốn xăng hơn là đương nhiên, xe mạnh mẽ đòi ăn ăn n", "brand": "VinFast", "source": "youtube"}, {"text": "đang chạy Feliz S đc 1 tháng, vợ mình đang đi A2 được 3 tháng nay, nói chung là quá ok với nhu cầu của gia đình mình. \nFeliz S đi trung bình đều ga ko phóng nhanh phanh gấp thì đã sau 6 vòng sạc, đi đ", "brand": "VinFast", "source": "youtube"}, {"text": "Dòng xe điện, m cảm thấy mẫu vf7 là mẫu đẹp nhất trong các thiết kế của Vin, tuyệt vời", "brand": "VinFast", "source": "youtube"}, {"text": "Mình là chủ xe\nĐặt cọc tiên phong nên được giảm 30tr. Mua đứt pin và lăn bánh tỉnh toàn bộ là 508 tr\nƯu điểm: \n- Mạnh nhất phân khúc, êm ái và đầm chắc\n- Cảm giác lái rất ổn và dễ kiểm soát khi chạy v", "brand": "VinFast", "source": "youtube"}], "negative": [{"text": "E34 của mình cũng đã đc 1 năm với 20k km, quá xứng đáng với tiên phong .Yêu e nó đến 5 năm sẽ đổi sang phiên bản cao hơn của vinfast", "brand": "VinFast", "source": "youtube"}, {"text": "Ốp điện thoại gắn xe VF8 dễ lắp, giữ chắc, không rung khi đi đường xấu.", "brand": "VinFast", "source": "shopee"}, {"text": "Byd thương hiệu lớn, xe thiết kế đẹp, lái hay", "brand": "BYD", "source": "youtube"}, {"text": "Kênh đưa thông tin rất hay! Lúc đầu vợ tôi cũng chưa ưng, nhưng lái thử là về bán luôn con Toyota cross bản V để sang luôn anh bạn VF8 plus! Quá ngon!😊", "brand": "VinFast", "source": "youtube"}, {"text": "Tôi thì lại rất đồng tình với nội thất giảm bỏ các phím trên vô lăng,... để giảm chi phí. Tôi đang đi huyndai kona 1.6T, tôi chưa dùng mất nút đàm thoại, kết nối auto,... chưa dùng 1 lần nào. Hướng tớ", "brand": "VinFast", "source": "youtube"}]}, "SERVICE_AFTERSALES": {"positive": [{"text": "M đang chạy VF5 được 6 tháng Nếu so với trước kia chạy Lux A thì đúng là siêu siêu tiết kiệm. Tháng tết m đi gần 4000km mà chỉ hết có 1tr6 thuê pin + vs 1tr5 tiền sạc . Nếu so với Lux A thì phải tầm h", "brand": "VinFast", "source": "youtube"}, {"text": "đang chạy Feliz S đc 1 tháng, vợ mình đang đi A2 được 3 tháng nay, nói chung là quá ok với nhu cầu của gia đình mình. \nFeliz S đi trung bình đều ga ko phóng nhanh phanh gấp thì đã sau 6 vòng sạc, đi đ", "brand": "VinFast", "source": "youtube"}, {"text": "Tôi đã bị Vinfast lừa nên giờ không tin xe điện nữa. Mua pin vừa hết bảo hành 2 tháng thì lăng ra chết, mang ra đại lý thì phải mất 500k gửi về xưởng kiểm tra chưa kể có sửa được hay không hay sửa mất", "brand": "VinFast", "source": "youtube"}, {"text": "Nhiều đứa hài thật, không biết có bằng lái chưa chứ đừng nói tới việc mua xe nhưng thích chê người có tiền bán xe châu Âu đi mua xe TQ. Tư duy thế nghèo mãi là phải. Mua ô tô là thứ tiêu sản, người mà", "brand": "BYD", "source": "youtube"}, {"text": "6,7năm trước mua con SH 300 Ý giá cũng tầm 300 triệu, giờ Vf3 khoản tiền 240 triệu,nhu cầu sử dụng chạy trong thành phố,che mưa nắng cho gia đình, có cả máy lạnh,chở được nhiều người thì quá tiện ích,", "brand": "VinFast", "source": "youtube"}], "negative": [{"text": "Với chế độ bảo hành 10 năm và chính sách thuê bao pin mới, các bác đánh giá sao về sự hấp dẫn và tương lai của Vinfast VF e34? \nTipcar sẽ tổng hợp tất cả những câu hỏi của các bác về chiếc xe này, chu", "brand": "VinFast", "source": "youtube"}, {"text": "nói chung vs tầm giá và độ uy tín từ bảo  dưỡng đến dịch vụ thì an toàn hơn hẳn xe SH và che mưa che nắng thì quá tuyệt so với 1 con SH rồi b ạ..và vs 1 hãng có tinh thần làm thật chiến thật như Vin c", "brand": "VinFast", "source": "youtube"}, {"text": "Có 1 số điều mà video này ad nói chưa đúng hoặc chưa rõ:\n1. Công suất vf6 base là bằng vf5 (134HP) không phải là 174HP - vấn đề này cũng k quan trọng lắm vì xe điện có bằng công suất xe xăng thì vẫn c", "brand": "VinFast", "source": "youtube"}, {"text": "Người sử dụng chiếc xe này họ toàn ở biệt thự. Việc lắp 1 trụ sạc 11kW ở nhà để đi về là cắm sạc nó rất đơn giản. Họ cũng không cần di chuyển nhiều để chở khách hàng ngày hay chở khách chạy từ Bắc vào", "brand": "VinFast", "source": "youtube"}, {"text": "Tôi đã tính bài toán này rất nhiều lần: nếu chỉ xét vận hành và bảo dưỡng, k tính đến phụ tùng, bảo hiểm, thì xe điện của Vin tiết kiệm hơn xe xăng cùng phân khúc khoảng 40-45% chi phí, tính ra mỗi nă", "brand": "VinFast", "source": "youtube"}]}, "PRICE_VALUE": {"positive": [{"text": "M đang chạy VF5 được 6 tháng Nếu so với trước kia chạy Lux A thì đúng là siêu siêu tiết kiệm. Tháng tết m đi gần 4000km mà chỉ hết có 1tr6 thuê pin + vs 1tr5 tiền sạc . Nếu so với Lux A thì phải tầm h", "brand": "VinFast", "source": "youtube"}, {"text": "Mình là chủ xe\nĐặt cọc tiên phong nên được giảm 30tr. Mua đứt pin và lăn bánh tỉnh toàn bộ là 508 tr\nƯu điểm: \n- Mạnh nhất phân khúc, êm ái và đầm chắc\n- Cảm giác lái rất ổn và dễ kiểm soát khi chạy v", "brand": "VinFast", "source": "youtube"}, {"text": "Tôi đã bị Vinfast lừa nên giờ không tin xe điện nữa. Mua pin vừa hết bảo hành 2 tháng thì lăng ra chết, mang ra đại lý thì phải mất 500k gửi về xưởng kiểm tra chưa kể có sửa được hay không hay sửa mất", "brand": "VinFast", "source": "youtube"}, {"text": "Ngoại thất đẹp, nội thất xấu, lái sướng, ngồi sau chán, giá đắt.", "brand": "VinFast", "source": "youtube"}, {"text": "Mình rất khâm phục tinh thần dám ghĩ, dám làm của ông Vượng. Ông ấy ko chỉ làm cho bản thân ông, cho doanh nghiệp mà còn cho cả đất nước. Sản xuất ko chỉ mang lại doanh thu cho doanh nghiệp, vc làm và", "brand": "VinFast", "source": "youtube"}], "negative": [{"text": "Mình đã đặt cọc chiếc vf6 plus + pin, Adas, 8 túi khí và khung gầm đầm chắc của vf6 là thứ đáng tiền nhất mà mình quyết định mua vf6 plus.", "brand": "VinFast", "source": "youtube"}, {"text": "Nhiều đứa hài thật, không biết có bằng lái chưa chứ đừng nói tới việc mua xe nhưng thích chê người có tiền bán xe châu Âu đi mua xe TQ. Tư duy thế nghèo mãi là phải. Mua ô tô là thứ tiêu sản, người mà", "brand": "BYD", "source": "youtube"}, {"text": "Ko thể so sánh giá ô tô tại Việt Nam với Trung quốc, vì 1 số yếu tố sau:\n1. Trên thế giới không có nước nào sản xuất xe điện rẻ hơn TQ.\n2. Bất kỳ xe nào bán ở Việt Nam đều đắt hơn các nước khác, kể cả", "brand": "VinFast", "source": "youtube"}, {"text": "E34 của mình cũng đã đc 1 năm với 20k km, quá xứng đáng với tiên phong .Yêu e nó đến 5 năm sẽ đổi sang phiên bản cao hơn của vinfast", "brand": "VinFast", "source": "youtube"}, {"text": "Tài xế taxi khổ lắm . Thứ nhất quỵt tiền, thứ 2 sợ cướp, thứ 3 sợ vi phạm giao thông , thứ 4 sợ mấy ông say rượu, thứ 5 sợ ko có khách , thứ 6 sợ tai nạn , thứ 7 sợ vợ  cắm sừng , thứ 8 sợ thiên tai ,", "brand": "VinFast", "source": "youtube"}]}}, "sent_by_brand": {"VinFast": {"pos": 4489, "neg": 1147, "neu": 3941}, "BYD": {"pos": 1713, "neg": 300, "neu": 1459}}, "brands": ["VinFast", "BYD"]};
+const pCfg = {displayModeBar:false,responsive:true};
+const pL = (t,h=350) => ({title:{text:t,font:{family:'Inter',size:14,color:'#fafafa'}},paper_bgcolor:'transparent',plot_bgcolor:'transparent',font:{family:'Inter',color:'#a1a1aa',size:11},height:h,margin:{t:40,b:40,l:50,r:20},xaxis:{gridcolor:'#27272a',zerolinecolor:'#27272a'},yaxis:{gridcolor:'#27272a',zerolinecolor:'#27272a'},legend:{bgcolor:'transparent',font:{size:11}}});
+
+Plotly.newPlot('chart-brand-dist',[{values:Object.values(D.brand_dist),labels:Object.keys(D.brand_dist),type:'pie',hole:.55,marker:{colors:Object.keys(D.brand_dist).map(b=>({VinFast:'#10b981',BYD:'#3b82f6'})[b]||'#6b7280'),line:{color:'#09090b',width:3}},textinfo:'percent+label',textfont:{size:13,family:'Inter'}}],pL('Brand Distribution'),pCfg);
+
+const sT = ['Positive','Neutral','Negative'].map(s=>{
+  const k = s.toLowerCase().slice(0,3);
+  return {name:s,x:D.brands,y:D.brands.map(b=>D.sent_by_brand[b][k]),type:'bar',marker:{color:{Positive:'#10b981',Neutral:'#6b7280',Negative:'#ef4444'}[s],line:{width:0}}};
+});
+Plotly.newPlot('chart-brand-sent',sT,{...pL('Sentiment by Brand'),barmode:'stack'},pCfg);
+
+// Heatmap
+const hc = document.getElementById('heatmap-container');
+let h = '<div class="heatmap-grid" style="grid-template-columns:200px repeat('+D.brands.length+',1fr)">';
+h += '<div></div>';
+D.brands.forEach(b=>h+=`<div class="heatmap-header">${{VinFast:'🟢',BYD:'🔵'}[b]||''} ${b}</div>`);
+D.heatmap.forEach(row=>{
+  h += `<div class="heatmap-label">${row.aspect}</div>`;
+  D.brands.forEach(b=>{
+    const d=row[b], n=d.nss;
+    const bg = n>0?`rgba(16,185,129,${Math.abs(n)*.4+.05})`:n<0?`rgba(239,68,68,${Math.abs(n)*.4+.05})`:'rgba(107,114,128,.1)';
+    const c = Math.abs(n)>.2?'#fafafa':'#a1a1aa';
+    h += `<div class="heatmap-cell" style="background:${bg}"><div class="heatmap-nss" style="color:${c}">${n>0?'+':''}${n.toFixed(3)}</div><div class="heatmap-count">n=${d.n.toLocaleString()}</div></div>`;
+  });
+});
+h += '</div>';
+hc.innerHTML = h;
+
+// Aspect Cards
+const ac = document.getElementById('aspect-cards');
+D.aspect_data.forEach(a=>{
+  const t=a.pos+a.neg+a.neu;
+  const pw=t?a.pos/t*100:0, nw=t?a.neg/t*100:0, ew=t?a.neu/t*100:0;
+  const c = a.nss>0?'var(--green)':a.nss<0?'var(--red)':'var(--text-muted)';
+  ac.innerHTML += `<div class="card aspect-card">
+    <div class="emoji">${a.name.split(' ')[0]}</div>
+    <div class="name">${a.name.slice(a.name.indexOf(' ')+1)}</div>
+    <div class="aspect-nss" style="color:${c}">${a.nss>0?'+':''}${a.nss.toFixed(3)}</div>
+    <div style="font-size:.7rem;color:var(--text-dim);margin-top:4px">${t.toLocaleString()} mentions</div>
+    <div class="aspect-bar"><div style="width:${pw}%;background:var(--green)"></div><div style="width:${ew}%;background:var(--text-dim)"></div><div style="width:${nw}%;background:var(--red)"></div></div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:.7rem;color:var(--text-dim)">
+      <span style="color:var(--green)">${a.pos} pos</span><span>${a.neu} neu</span><span style="color:var(--red)">${a.neg} neg</span>
+    </div>
+  </div>`;
+});
+
+// Quote Tabs
+const qt=document.getElementById('quote-tabs'), qp=document.getElementById('quote-panels');
+const aspects=Object.keys(D.quotes);
+aspects.forEach((a,i)=>{
+  const l = D.aspect_data.find(d=>d.key===a)?.name || a;
+  qt.innerHTML += `<div class="tab ${i===0?'active':''}" onclick="switchTab('${a}',${i})">${l}</div>`;
+  const q=D.quotes[a];
+  let p = `<div class="tab-content ${i===0?'active':''}" id="panel-${a}"><div class="grid-2"><div><h4 style="color:var(--green);font-size:.85rem;margin-bottom:12px">✅ Positive</h4>`;
+  q.positive.forEach(c=>p+=`<div class="quote-card positive"><div class="quote-text">"${c.text}"</div><div class="quote-meta"><span>🏷️ ${c.brand}</span><span>📡 ${c.source}</span></div></div>`);
+  if(!q.positive.length) p+='<div style="color:var(--text-dim);font-size:.85rem">No quotes</div>';
+  p += '</div><div><h4 style="color:var(--red);font-size:.85rem;margin-bottom:12px">❌ Negative</h4>';
+  q.negative.forEach(c=>p+=`<div class="quote-card negative"><div class="quote-text">"${c.text}"</div><div class="quote-meta"><span>🏷️ ${c.brand}</span><span>📡 ${c.source}</span></div></div>`);
+  if(!q.negative.length) p+='<div style="color:var(--text-dim);font-size:.85rem">No quotes</div>';
+  p += '</div></div></div>';
+  qp.innerHTML += p;
+});
+
+function switchTab(key, idx) {
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.tab-content').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+key)?.classList.add('active');
+}
+
+const obs = new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.1});
+document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+</script>
+</body></html>
