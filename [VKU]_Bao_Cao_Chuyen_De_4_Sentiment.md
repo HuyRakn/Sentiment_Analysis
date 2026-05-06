@@ -860,10 +860,52 @@ Bản đồ nhiệt chỉ ra một sự thật nghiệt ngã của hiệu ứng 
 Những chủ đề liên quan đến "xe sập nguồn", "lỗi pin", hay "nằm đường chờ cứu hộ" thường tạo ra các luồng tranh cãi nảy lửa (Flame wars) kéo dài hàng tuần. Điều này là hồi chuông cảnh báo cấp thiết cho phòng Chăm sóc Khách hàng (CSKH): Không thể chỉ đếm số lượng bình luận, mà phải dùng hệ thống phân tích Engagement để ưu tiên dập tắt các đốm lửa tiêu cực trước khi chúng biến thành khủng hoảng truyền thông lan rộng.
 
 **5.4. Phân tích Định tính và Khám phá Khía cạnh (Qualitative & Aspect Deep Dive)**
-* So sánh sức khỏe thương hiệu qua bản đồ nhiệt khía cạnh (Aspect Heatmap) và Radar Chart.
-* Trích xuất và giải nghĩa bình luận thực tế (Representative Verbatim): Lý giải nguyên nhân cốt lõi hình thành cảm xúc người dùng đối với các khía cạnh (Pin, Phần mềm, Dịch vụ).
 
----
+Bên cạnh các chỉ số vĩ mô, giá trị cốt lõi của bài toán **Aspect-Based Sentiment Analysis (ABSA)** nằm ở việc bóc tách chính xác "Người dùng đang khen cái gì và chê cái gì". Mục này đi sâu vào phân tích định tính dựa trên 6 khía cạnh cốt lõi đã được định nghĩa ở Chương 4.
+
+**5.4.1. Bản đồ Nhiệt Cảm xúc Đa Khía cạnh (Aspect Heatmap)**
+
+Bản đồ nhiệt (Heatmap) là công cụ trực quan hóa quyền lực nhất để chẩn đoán sức khỏe từng bộ phận của một thương hiệu.
+
+![Bản đồ Nhiệt Cảm xúc Khía cạnh](artifacts/plots/04_aspect_brand_heatmap.png)
+*Hình 5.7: Bản đồ nhiệt đối chiếu điểm số NSS trên 6 khía cạnh giữa VinFast và BYD.*
+
+**Chẩn đoán Kỹ thuật:**
+*   **Điểm yếu chí mạng của VinFast (Vùng Đỏ/Cam):** Khía cạnh `SOFTWARE_TECHNOLOGY` (Phần mềm) và `SERVICE_AFTERSALES` (Dịch vụ Hậu mãi) của VinFast ghi nhận sắc độ ấm (tiêu cực). Điều này phản ánh chính xác thực trạng của các dòng xe VF đời đầu khi phần mềm chưa tối ưu (lỗi ảo, sập nguồn ắc quy 12V) và một số đại lý dịch vụ bị quá tải, gây trải nghiệm xấu cho người dùng.
+*   **Lợi thế cạnh tranh của BYD (Vùng Xanh lá):** Khía cạnh `BATTERY_CHARGING` (Pin & Sạc) của BYD có điểm số xanh đậm, minh chứng cho sự thành công của chiến dịch truyền thông "Pin Blade chống cháy nổ". Tuy nhiên, khía cạnh `PRICE_VALUE` (Giá bán) của BYD lại kém tích cực, do người tiêu dùng Việt Nam kỳ vọng xe Trung Quốc phải có giá rẻ hơn nhiều so với mức giá công bố thực tế của BYD Dolphin và Seal.
+
+**5.4.2. Ma trận Sức khỏe Thương hiệu (Brand Health Matrix)**
+
+Để cung cấp góc nhìn chiến lược cho Ban Giám đốc, hệ thống vẽ ra Ma trận Sức khỏe Thương hiệu dựa trên hai trục: **Lượng Thảo luận (Volume/X-axis)** và **Điểm Cảm xúc (Sentiment/Y-axis)**.
+
+![Ma trận Sức khỏe Thương hiệu](artifacts/plots/17_brand_health_matrix.png)
+*Hình 5.8: Phân bố các khía cạnh trong Ma trận Sức khỏe (Tương quan giữa Volume và NSS).*
+
+**Phân tích Góc phần tư (Quadrant Analysis):**
+*   **Góc phần tư IV (Nhiều thảo luận + Cảm xúc thấp) - Khu vực Khủng hoảng:** `Phần mềm` của VinFast nằm trọn trong vùng này. Đây là hạng mục cần "Báo động Đỏ", yêu cầu R&D phải tung ra các bản cập nhật OTA khẩn cấp.
+*   **Góc phần tư I (Nhiều thảo luận + Cảm xúc cao) - Khu vực Ngôi sao:** `Thiết kế Ngoại thất` và `Khả năng Vận hành` của cả VinFast và BYD đều nằm ở đây. Người dùng Việt Nam đặc biệt ưu ái thiết kế của Pininfarina (trên xe VinFast) và khả năng tăng tốc mượt mà đặc trưng của xe điện.
+*   **Góc phần tư II (Ít thảo luận + Cảm xúc cao) - Khu vực Ngách:** `Pin Blade` của BYD. Đây là thế mạnh cốt lõi nhưng chưa được lan truyền đủ rộng, yêu cầu đội ngũ Marketing của BYD phải đẩy mạnh truyền thông giáo dục thị trường.
+
+**5.4.3. Mổ xẻ Ngữ nghĩa Thực tế (Representative Verbatim Analysis)**
+
+Sức mạnh thực sự của mạng nơ-ron PhoBERT được thể hiện rõ nhất khi đối mặt với các bình luận mang tính chất **Đa chiều (Multi-polarity)**. Trong Học máy truyền thống, một bình luận có cả khen lẫn chê thường bị gán nhãn là "Trung lập" (Neutral) một cách oan uổng. Tuy nhiên, hệ thống của chúng ta đã bóc tách hoàn hảo:
+
+*   **Bình luận 1 (Dữ liệu thực tế VinFast):**
+    > *"Xe đi rất đầm chắc, tăng tốc vọt thích lắm. Nhưng màn hình giải trí thỉnh thoảng bị đơ cứng ngắc, gọi tổng đài thì bắt chờ hơi lâu."*
+    *   **Kết quả AI gán nhãn:**
+        *   `PERFORMANCE_DRIVING` $\rightarrow$ **Positive** (+1) *(Do có: đầm chắc, tăng tốc vọt)*
+        *   `SOFTWARE_TECHNOLOGY` $\rightarrow$ **Negative** (-1) *(Do có: màn hình đơ)*
+        *   `SERVICE_AFTERSALES` $\rightarrow$ **Negative** (-1) *(Do có: bắt chờ lâu)*
+
+*   **Bình luận 2 (Dữ liệu thực tế BYD):**
+    > *"Pin Blade con Seal này sạc cực nhanh không lo cháy nổ, nội thất thì bao sang. Cơ mà giá lăn bánh chát quá so với mặt bằng xe Tàu."*
+    *   **Kết quả AI gán nhãn:**
+        *   `BATTERY_CHARGING` $\rightarrow$ **Positive** (+1) *(Do có: sạc cực nhanh)*
+        *   `DESIGN_INTERIOR` $\rightarrow$ **Positive** (+1) *(Do có: nội thất sang)*
+        *   `PRICE_VALUE` $\rightarrow$ **Negative** (-1) *(Do có: giá chát)*
+
+**Kết luận Chương 5:**
+Thông qua việc kết hợp hệ thống Dashboard tương tác, mạng nơ-ron học sâu PhoBERT và các kỹ thuật Phân tích Dữ liệu trực quan (Data Visualization), hệ thống không chỉ giải quyết trọn vẹn bài toán học máy phức tạp mà còn mở ra một cái nhìn thấu suốt (Insights) về thị trường xe điện Việt Nam. Những phát hiện từ Chương 5 chính là cơ sở dữ liệu sắc bén nhất để chúng ta thiết lập các Đề xuất Chiến lược Kinh doanh ở **Chương 6**.
 
 ### CHƯƠNG 6: KẾT LUẬN VÀ ĐỀ XUẤT GIẢI PHÁP KINH DOANH
 **6.1. Tổng kết Kết quả Đạt được**
